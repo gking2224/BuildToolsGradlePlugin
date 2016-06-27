@@ -1,0 +1,92 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+//        classpath ("me.gking2224:BuildToolsGradlePlugin:0.1.0") {transitive = false}
+//        classpath "org.eclipse.jgit:org.eclipse.jgit:4.4.0.201606070830-r"
+    }
+}
+
+plugins {
+  id 'groovy'
+}
+
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+//apply plugin: 'me.gking2224.buildtools'
+
+jar {
+    
+}
+
+ext {
+    artifactId = "me.gking2224.buildtoolsplugin.artifactid" // what does this do?
+    defaultEncoding = "UTF-8"
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+
+// versions
+ext {
+    junitVersion = '4.11'
+    jgitVersion = "4.4.0.201606070830-r"
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(
+            	url: "file://localhost/Users/gk/.m2/repository/")
+        }
+    }
+}
+
+dependencies {
+    
+    compile gradleApi()
+    compile localGroovy()
+    testCompile group: 'junit', name: 'junit', version: junitVersion
+    compile "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
+    compile "org.eclipse.jgit:org.eclipse.jgit.junit:$jgitVersion"
+}
+
+task wrapper(type: Wrapper)
+
+eclipse {
+    project {
+        buildCommand 'org.eclipse.jdt.core.javabuilder'
+        buildCommand 'org.springframework.ide.eclipse.core.springbuilder'
+        natures 'org.eclipse.jdt.core.javanature',
+                'org.springsource.ide.eclipse.gradle.core.nature',
+                'org.springframework.ide.eclipse.core.springnature'
+    }
+    classpath {
+        defaultOutputDir = file('build/classes')
+        containers = [
+            'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8',
+            'org.springsource.ide.eclipse.gradle.classpathcontainer'  // Gradle IDE classpath container
+        ]
+        file {
+            // exclude jar entries from .classpath
+            whenMerged { classpath ->
+                classpath.configure classpath.entries.grep { entry ->
+                    !(entry instanceof org.gradle.plugins.ide.eclipse.model.Library)
+                }
+                classpath.entries.findAll {
+                    it instanceof org.gradle.plugins.ide.eclipse.model.SourceFolder && it.path.startsWith("src/test/")
+                }*.output = "build/test-classes"
+            }
+        }
+        downloadSources = true
+        downloadJavadoc = true
+    }
+}
