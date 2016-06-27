@@ -10,7 +10,7 @@ import org.junit.Test
 
 class JGitTest {
 
-    @Test
+//    @Test
     void test() {
         File f = new File("../AmazonAWSPlugin")
         Git git = Git.open(f)
