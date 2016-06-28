@@ -15,9 +15,11 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
 
 	void apply(Project project) {
         
-        // define tasks
-		project.task("buildtoolstest", group:GROUP)
-		
+        // declare envs extension
+        project.extensions.create(
+            EnvironmentsHandler.KEY,
+             EnvironmentsHandler, project)
+        
 		if (!project.hasProperty("mavenRepo")) {
 			project.ext.mavenRepo = System.getProperty("user.home")+"/.m2/repository/"
 		}

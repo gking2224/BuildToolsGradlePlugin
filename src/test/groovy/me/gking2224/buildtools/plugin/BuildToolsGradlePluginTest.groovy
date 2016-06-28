@@ -1,7 +1,8 @@
 package me.gking2224.buildtools.plugin
 
 import static org.junit.Assert.*
-import me.gking2224.buildtools.util.Version
+
+import java.time.chrono.JapaneseChronology;
 
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Before
@@ -15,19 +16,29 @@ class BuildToolsGradlePluginTest {
     @Before
     void before() {
         project = ProjectBuilder.builder().build()
-//        project.pluginManager.apply BuildToolsGradlePlugin.NAME
+        project.pluginManager.apply "java"
+        project.pluginManager.apply "maven"
+        project.pluginManager.apply BuildToolsGradlePlugin.NAME
+        
     }
     @Test
     public void testTaskDefined() {
         
-//        assertTrue(project.tasks.bumpVersion != null)
+        assertTrue(project.tasks.release != null)
     }
     
     @Test
-    void testIncrementVersion() {
-//        def v = new Version("1.0.0-SNAPSHOT")
-//        assertEquals("1.0.1-SNAPSHOT", v.rawVersion)
+    public void testEnvironmentsConfig() {
         
+        project.environments {
+            env("test") {
+                url = "http://testenv/"
+            }
+            env("prod") {
+                url = "http://prod/"
+            }
+        }
+        assert project.environment.url == "http://testenv/"
+        assert project.environment instanceof EnvironmentConfig
     }
-    
 }
