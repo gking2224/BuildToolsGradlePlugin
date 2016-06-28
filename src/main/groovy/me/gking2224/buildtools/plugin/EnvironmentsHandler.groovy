@@ -15,15 +15,11 @@ class EnvironmentsHandler {
     }
     
     def env(String env, Closure c) {
-        println "Configuring environment $env"
         if (System.getProperty("buildtools.environment") == env) {
             EnvironmentConfig ec = new EnvironmentConfig()
             c.delegate = ec
             c()
             project.ext.environment = ec
-        }
-        else {
-            println "not processing env config for $env"
         }
     }
 }

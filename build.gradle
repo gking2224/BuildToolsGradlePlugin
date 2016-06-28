@@ -89,4 +89,4 @@ eclipse {
         downloadJavadoc = true
     }
 }
-apply from: 'test.gradle'
+if (file('test.gradle').exists()) apply from: 'test.gradle'
