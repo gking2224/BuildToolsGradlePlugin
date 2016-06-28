@@ -38,6 +38,7 @@ class BuildToolsGradlePluginTest {
                 url = "http://prod/"
             }
         }
+        assert project.hasProperty("environment")
         assert project.environment.url == "http://testenv/"
         assert project.environment instanceof EnvironmentConfig
     }
