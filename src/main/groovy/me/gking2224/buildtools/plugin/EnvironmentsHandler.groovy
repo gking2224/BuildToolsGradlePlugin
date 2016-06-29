@@ -16,7 +16,7 @@ class EnvironmentsHandler {
     
     def env(String env, Closure c) {
         def sysEnv = System.getProperty("buildtools.environment")
-        println ("System property 'buildtools.environment': $sysEnv")
+        println ("System property 'buildtools.environment': $sysEnv ... ${project.buildtools.environment}")
         if (sysEnv == env) {
             EnvironmentConfig ec = new EnvironmentConfig()
             c.delegate = ec
