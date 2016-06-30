@@ -28,14 +28,11 @@ class PropertiesResolverTest {
         def pr = new PropertiesResolver(project)
         pr.resolveProperties(p)
         
-        assertTrue(project.hasProperty("a"))
-//        assertTrue(project.hasProperty("a.b"))
         assertTrue(project.hasProperty("a.b.c"))
         assertTrue(project.hasProperty("a.b.d"))
         assertTrue(project.hasProperty("x"))
-        assertTrue(project.a instanceof Map)
-        assertEquals("x", project.a.b.c)
-        assertEquals("y", project.a.b.d)
+        assertEquals("x", project["a.b.c"])
+        assertEquals("y", project["a.b.d"])
         assertEquals("z", project.x)
         
         assertTrue(!project.hasProperty("abc"))

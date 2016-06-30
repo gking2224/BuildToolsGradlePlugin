@@ -30,40 +30,5 @@ class PropertiesResolver {
         else {
             m.put(k, v)
         }
-//        def idx = k.indexOf(".")
-//        if (idx != -1) {
-//            def p1 = k.substring(0, idx)
-//            def p2 = k.substring(idx+1)
-//            def submap = getSubMapForKey(p1, m)
-//            m.put(p1, submap)
-//            storeProperty(p2, v, submap)
-//        }
-    }
-    
-    def getSubMapForKey(def k, Map m) {
-        if (project.hasProperty(k)) {
-            def v = project[k]
-            if (!(v instanceof Map)) {
-                throw new IllegalStateException("Overloading of property $k on project")
-            }
-            else {
-                return v
-            }
-        }
-        else {
-            def v = m.get(k)
-            if (v != null) {
-                if (!(v instanceof Map)) {
-                    throw new IllegalStateException("Overloading of property $k on project")
-                }
-                else {
-                    return (Map)v
-                }
-            }
-            else {
-                return new HashMap<String,Object>()
-            }
-            
-        }
     }
 }
