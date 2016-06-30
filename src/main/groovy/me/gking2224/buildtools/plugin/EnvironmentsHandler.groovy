@@ -16,7 +16,7 @@ class EnvironmentsHandler {
     
     def env(String env, Closure c) {
         assert project.hasProperty("buildtools.environment")
-        def sysEnv = project.buildtools.environment
+        def sysEnv = project["buildtools.environment"]
         println ("System property 'buildtools.environment': $sysEnv")
         if (sysEnv == env) {
             EnvironmentConfig ec = new EnvironmentConfig()
