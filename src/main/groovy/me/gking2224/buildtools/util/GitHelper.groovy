@@ -2,32 +2,62 @@ package me.gking2224.buildtools.util
 
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.Status
+import org.eclipse.jgit.api.TransportConfigCallback
+import org.eclipse.jgit.dircache.DirCache
+import org.eclipse.jgit.dircache.DirCacheEntry
+import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.transport.JschConfigSessionFactory
+import org.eclipse.jgit.transport.SshTransport
+import org.eclipse.jgit.transport.Transport
+import org.eclipse.jgit.transport.OpenSshConfig.Host
+import org.eclipse.jgit.util.FS
+
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
+import com.jcraft.jsch.Session
 
 class GitHelper {
 
-    private static GitHelper instance = new GitHelper()
-    
+    private static final GitHelper instance = new GitHelper()
+
+    def sshSessionFactory
+    def transportConfigCallback
+
     private GitHelper() {
-        
+        sshSessionFactory = new JschConfigSessionFactory() {
+                    @Override
+                    protected void configure( Host host, Session session ) {
+                        // do nothing
+                    }
+                    @Override
+                    protected JSch createDefaultJSch( FS fs ) throws JSchException {
+                        JSch defaultJSch = super.createDefaultJSch( fs );
+                        def key = System.getProperty("git.build.private.key")
+                        println "GitHelper: using key $key"
+                        if (key != null) defaultJSch.addIdentity( key )
+                        return defaultJSch;
+                    }
+                };
+        transportConfigCallback = new TransportConfigCallback() {
+                    @Override
+                    public void configure( Transport transport ) {
+                        SshTransport sshTransport = ( SshTransport )transport;
+                        sshTransport.setSshSessionFactory( sshSessionFactory );
+                    }
+                };
     }
-    
-    Status getGitStatus(File f) {
+
+    def Status getGitStatus(File f) {
         Git git = Git.open(f)
         git.status().call()
     }
-    
+
     def commitFile(File f, String pattern, String message) {
-        println(f.absolutePath)
         Git git = Git.open(f)
-        
-        git.add().addFilepattern(pattern).setUpdate(true);
-        git.commit().setMessage(message).
-            setAuthor("gking2224", "gking2224@gmail.com").call();
-    }
-    
-    public static void main(String[] args) {
-        GitHelper gh = GitHelper.instance
-        File f = new File("../AmazonAWSPlugin")
-        println gh.getPathsModified(f)
+        DirCache dc = git.add().addFilepattern(pattern).setUpdate(true).call()
+        dc.getEntriesWithin(pattern).each{DirCacheEntry e-> println e.getPathString()}
+        RevCommit rc  = git.commit().setMessage(message).call()
+        git.push().setTransportConfigCallback(transportConfigCallback).
+            setOutputStream(System.out).call()
     }
 }

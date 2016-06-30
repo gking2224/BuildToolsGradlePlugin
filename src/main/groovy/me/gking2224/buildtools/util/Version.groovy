@@ -6,7 +6,6 @@ public class Version {
         MAJOR, MINOR, PATCH
     }
     static final String SNAPSHOT_SFX = "-SNAPSHOT"
-    static final String ALREADY_RELEASED_ERR_MSG = "not possible to release a released version"
     static final String UNKNOWN_INC_TYPE_ERR_MSG = "unknown IncType"
     def boolean isSnapshot
     def String versionNum
@@ -44,7 +43,7 @@ public class Version {
     }
     
     def Version release() {
-        if (!isSnapshot) throw new IllegalStateException(ALREADY_RELEASED_ERR_MSG)
+        if (!isSnapshot) return this
         return new Version(false, parts)
     }
     static String partsAsString(boolean isSnapshot, Integer... parts) {

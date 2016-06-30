@@ -72,13 +72,7 @@ import org.junit.Test
     void testRelease() {
         assertEquals("1.0.0", new Version("1.0.0-SNAPSHOT").release().rawVersion)
         assertEquals("21.35.57", new Version("21.35.57-SNAPSHOT").release().rawVersion)
-        try {
-            new Version("1.0.2").release()
-            fail("not possible to release a released version")
-        }
-        catch (RuntimeException e) {
-            assertEquals(Version.ALREADY_RELEASED_ERR_MSG, e.getMessage())
-        }
+        assertEquals("21.35.57", new Version("21.35.57").release().rawVersion)
     }
     
     @Test
