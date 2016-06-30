@@ -19,6 +19,7 @@ class BuildToolsGradlePluginTest {
         project.pluginManager.apply "java"
         project.pluginManager.apply "maven"
         project.pluginManager.apply BuildToolsGradlePlugin.NAME
+        project.ext["buildtools.environment"] = "test"
         
     }
     @Test
@@ -41,5 +42,14 @@ class BuildToolsGradlePluginTest {
         assert project.hasProperty("environment")
         assert project.environment.url == "http://testenv/"
         assert project.environment instanceof EnvironmentConfig
+    }
+    
+    @Test
+    public void testResolve() {
+        assertEquals( "string", project.resolve("string") )
+        assertNull( project.resolve(null) )
+        def n = "value_of_n"
+        def c = { return n }
+        assertEquals(n, project.resolve(c) )
     }
 }

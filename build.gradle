@@ -89,4 +89,8 @@ eclipse {
         downloadJavadoc = true
     }
 }
-if (file('test.gradle').exists()) apply from: 'test.gradle'
+
+task testParam << {
+    println "has dryRun: ${project.hasProperty('dryRun')}"
+    if (project.hasProperty("dryRun")) println project.dryRun
+}
