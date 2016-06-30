@@ -1,17 +1,24 @@
 buildscript {
+//    buildSrc = file("${project.rootDir}/src/main/groovy")
     repositories {
         mavenLocal()
         mavenCentral()
         jcenter()
+//        maven {url= "http://artifactory.gking2224.me/artifactory/libs-release" }
     }
     dependencies {
-//        classpath "me.gking2224:BuildToolsGradlePlugin:0.1.1"
+//        classpath "me.gking2224:BuildToolsGradlePlugin:0.1.2"
     }
 }
 
 plugins {
   id 'groovy'
 }
+//apply plugin: new GroovyScriptEngine(
+//    [file('src/main/groovy').absolutePath, file('src/main/resources').absolutePath].
+//        toArray(new String[2]),
+//    this.class.classLoader
+//).loadScriptByName('me/gking2224/buildtools/plugin/BuildToolsGradlePlugin.groovy')
 
 apply plugin: 'eclipse'
 apply plugin: 'maven'

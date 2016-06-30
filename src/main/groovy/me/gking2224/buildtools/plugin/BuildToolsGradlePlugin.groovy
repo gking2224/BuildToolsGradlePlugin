@@ -30,7 +30,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
         
         
         if (project.file(SECRET_PROPERTIES_FILE).exists()) {
-            new PropertiesResolver(p).resolveProperties(readProps(SECRET_PROPERTIES_FILE))
+            new PropertiesResolver(p).resolveProperties(readProps(project.file(SECRET_PROPERTIES_FILE)))
         }
 		if (!project.hasProperty("mavenRepo")) {
 			project.ext.mavenRepo = System.getProperty("user.home")+"/.m2/repository/"
@@ -43,9 +43,6 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
 				}
 			}
 		}
-        println(System.getProperty("artifactory.snapshot.url"))
-        println(System.getProperty("artifactory.username"))
-        println(System.getProperty("artifactory.password"))
         project.uploadArchives {
             repositories {
                 mavenDeployer {
@@ -61,8 +58,6 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
                 }
             }
         }
-        
-        project.uploadArchives.repositories.each{println "Deploying to ${((MavenDeployer)it).repository}"}
         
         if (project.file("src/integration").exists()) {
             configureIntegrationTests()
