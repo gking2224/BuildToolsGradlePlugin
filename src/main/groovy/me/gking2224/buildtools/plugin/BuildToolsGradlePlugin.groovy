@@ -43,21 +43,21 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
 				}
 			}
 		}
-        project.uploadArchives {
-            repositories {
-                mavenDeployer {
-//                    repository(url: (project.gradle.startParameter.taskNames.contains("release"))?System.getProperty("artifactory.release.url"):System.getProperty("artifactory.snapshot.url")) {
+//        project.uploadArchives {
+//            repositories {
+//                mavenDeployer {
+////                    repository(url: (project.gradle.startParameter.taskNames.contains("release"))?System.getProperty("artifactory.release.url"):System.getProperty("artifactory.snapshot.url")) {
+////                        authentication(userName: System.getProperty("artifactory.username"), password: System.getProperty("artifactory.password"))
+////                    }
+////                    repository(url: System.getProperty("artifactory.release.url")) {
+////                        authentication(userName: System.getProperty("artifactory.username"), password: System.getProperty("artifactory.password"))
+////                    }
+//                    repository(url: System.getProperty("artifactory.snapshot.url")) {
 //                        authentication(userName: System.getProperty("artifactory.username"), password: System.getProperty("artifactory.password"))
 //                    }
-//                    repository(url: System.getProperty("artifactory.release.url")) {
-//                        authentication(userName: System.getProperty("artifactory.username"), password: System.getProperty("artifactory.password"))
-//                    }
-                    repository(url: System.getProperty("artifactory.snapshot.url")) {
-                        authentication(userName: System.getProperty("artifactory.username"), password: System.getProperty("artifactory.password"))
-                    }
-                }
-            }
-        }
+//                }
+//            }
+//        }
         
         if (project.file("src/integration").exists()) {
             configureIntegrationTests()
