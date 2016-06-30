@@ -29,7 +29,7 @@ class PropertiesResolverTest {
         pr.resolveProperties(p)
         
         assertTrue(project.hasProperty("a"))
-        assertTrue(project.hasProperty("a.b"))
+//        assertTrue(project.hasProperty("a.b"))
         assertTrue(project.hasProperty("a.b.c"))
         assertTrue(project.hasProperty("a.b.d"))
         assertTrue(project.hasProperty("x"))
