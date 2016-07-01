@@ -120,14 +120,8 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
         
         project.task("release", group:GROUP,
             dependsOn:[
-                'check', 'assertNoChanges', 'removeSnapshot',
-                'uploadArchives', 'bumpVersion']) << {
-//            assertNoChanges()
-//            removeSnapshot()
-//            commitVersionFile()
-//            bumpVersion()
-//            commitVersionFile()
-        }
+                'check', 'assertNoChanges', 'removeSnapshot'])
+              
         
         project.task("removeSnapshot", type:GitCommit, group:GROUP) {
             pattern = GRADLE_PROPERTIES_FILE
@@ -138,11 +132,6 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
         }
         project.tasks.assertNoChanges.mustRunAfter "check"
         project.tasks.removeSnapshot.mustRunAfter "assertNoChanges"
-        project.tasks.uploadArchives.mustRunAfter "removeSnapshot"
-        project.tasks.bumpVersion.mustRunAfter "uploadArchives"
-//        project.task("commitVersion", group:GROUP) << {
-//            commitVersionFile()
-//        }
     }
     
     def commitVersionFile() {
