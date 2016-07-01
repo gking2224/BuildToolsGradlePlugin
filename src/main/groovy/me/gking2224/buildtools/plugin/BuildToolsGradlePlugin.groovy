@@ -43,22 +43,6 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
 				}
 			}
 		}
-        println "uploadArchives not configured"
-//        project.uploadArchives {
-//            repositories {
-//                mavenDeployer {
-////                    repository(url: (project.gradle.startParameter.taskNames.contains("release"))?System.getProperty("artifactory.release.url"):System.getProperty("artifactory.snapshot.url")) {
-////                        authentication(userName: System.getProperty("artifactory.username"), password: System.getProperty("artifactory.password"))
-////                    }
-////                    repository(url: System.getProperty("artifactory.release.url")) {
-////                        authentication(userName: System.getProperty("artifactory.username"), password: System.getProperty("artifactory.password"))
-////                    }
-//                    repository(url: System.getProperty("artifactory.snapshot.url")) {
-//                        authentication(userName: System.getProperty("artifactory.username"), password: System.getProperty("artifactory.password"))
-//                    }
-//                }
-//            }
-//        }
         
         if (project.file("src/integration").exists()) {
             configureIntegrationTests()
@@ -84,6 +68,11 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
             if (a == null) return null
             else if (a instanceof Closure) return a()
             else return a
+        }
+        project.task("clearGradleCache") << {
+            if (project.hasProperty("gradleCacheDir")) {
+                project.file(project.gradleCacheDir).delete()
+            }
         }
 	}
     
@@ -114,13 +103,34 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
     def createReleaseTasks() {
         project.gradle.taskGraph.whenReady {taskGraph ->
             if (taskGraph.hasTask("release")) {
-                
+                println "Configuring uploadArchives for release"
+                project.uploadArchives {
+                    repositories {
+                        mavenDeployer {
+                            repository(url: project["artifactory.release.url"]) {
+                                authentication(userName: project["artifactory.username"], password: project["artifactory.password"])
+                            }
+                        }
+                    }
+                }
+            }
+            else {
+                println "Configuring uploadArchives for snapshot"
+                project.uploadArchives {
+                    repositories {
+                        mavenDeployer {
+                            repository(url: project["artifactory.release.url"]) {
+                                authentication(userName: project["artifactory.username"], password: project["artifactory.password"])
+                            }
+                        }
+                    }
+                }
             }
         }
         
         project.task("release", group:GROUP,
             dependsOn:[
-                'check', 'assertNoChanges', 'removeSnapshot'])
+                'check', 'assertNoChanges', 'removeSnapshot', 'uploadArchives'])
               
         
         project.task("removeSnapshot", type:GitCommit, group:GROUP) {
@@ -132,6 +142,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
         }
         project.tasks.assertNoChanges.mustRunAfter "check"
         project.tasks.removeSnapshot.mustRunAfter "assertNoChanges"
+        project.tasks.uploadArchives.mustRunAfter "removeSnapshot"
     }
     
     def commitVersionFile() {
@@ -142,6 +153,12 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
     }
     
     def createBumpVersionTask() {
+        
+        project.task("postRelease", group:GROUP,
+            dependsOn:[
+                'bumpVersion', 'uploadArchives'])
+        project.tasks.uploadArchives.mustRunAfter "bumpVersion"
+        
         project.task("bumpVersion", group:GROUP, type:GitCommit) {
             pattern = GRADLE_PROPERTIES_FILE
             message = "RELEASE: increasing version"
