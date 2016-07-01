@@ -120,7 +120,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
                 project.uploadArchives {
                     repositories {
                         mavenDeployer {
-                            repository(url: project["artifactory.release.url"]) {
+                            repository(url: project["artifactory.snapshot.url"]) {
                                 authentication(userName: project["artifactory.username"], password: project["artifactory.password"])
                             }
                         }
