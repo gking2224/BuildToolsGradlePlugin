@@ -22,7 +22,16 @@ class UtilityTasksConfigurer {
         }
         
         project.ext.notRunning = {m ->
-            println "DryRun - not running{$m}"
+            println "DryRun - not running [{$m}]"
+        }
+        
+        project.ext.dryRunExecute = {String message, Closure c->
+            if (project.isDryRun()) {
+                project.notRunning(message)
+            }
+            else {
+                c()
+            }
         }
         
         project.ext.resolve = {a ->
