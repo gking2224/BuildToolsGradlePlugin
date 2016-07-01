@@ -9,7 +9,7 @@ class GitCommit extends DefaultTask {
 
     def pattern
     def message
-    def GitHelper gitHelper = GitHelper.instance
+    def GitHelper gitHelper = new GitHelper(project["git.username"], project["git.password"])
     
     @TaskAction
     def doCommit() {

@@ -1,3 +1,7 @@
 test {
     systemProperty "buildtools.environment", "test"
 }
+ext {
+    git.username = "blah"
+    git.password = "blah"
+}

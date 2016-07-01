@@ -6,9 +6,11 @@ import org.eclipse.jgit.api.TransportConfigCallback
 import org.eclipse.jgit.dircache.DirCache
 import org.eclipse.jgit.dircache.DirCacheEntry
 import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.transport.HttpTransport
 import org.eclipse.jgit.transport.JschConfigSessionFactory
 import org.eclipse.jgit.transport.SshTransport
 import org.eclipse.jgit.transport.Transport
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.eclipse.jgit.transport.OpenSshConfig.Host
 import org.eclipse.jgit.util.FS
 
@@ -22,8 +24,10 @@ class GitHelper {
 
     def sshSessionFactory
     def transportConfigCallback
+    def credentialsProvider
 
     private GitHelper() {
+        credentialsProvider = new UsernamePasswordCredentialsProvider(username, password)
         sshSessionFactory = new JschConfigSessionFactory() {
                     @Override
                     protected void configure( Host host, Session session ) {
@@ -35,14 +39,20 @@ class GitHelper {
                         def key = System.getProperty("git.build.private.key")
                         println "GitHelper: using key $key"
                         if (key != null) defaultJSch.addIdentity( key )
-                        return defaultJSch;
+                        return defaultJSch
                     }
                 };
         transportConfigCallback = new TransportConfigCallback() {
                     @Override
                     public void configure( Transport transport ) {
-                        SshTransport sshTransport = ( SshTransport )transport;
-                        sshTransport.setSshSessionFactory( sshSessionFactory );
+                        if (SshTransport.class.isAssignableFrom(transport.getClass())) {
+                            SshTransport sshTransport = ( SshTransport )transport
+                            sshTransport.setSshSessionFactory( sshSessionFactory )
+                        }
+                        else if (HttpTransport.class.isAssignableFrom(transport.getClass())) {
+                            HttpTransport httpTransport = (HttpTransport)transport
+                            httpTransport.setCredentialsProvider(credentialsProvider)
+                        }
                     }
                 };
     }
