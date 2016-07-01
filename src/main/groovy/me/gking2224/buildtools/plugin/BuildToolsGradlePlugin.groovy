@@ -102,6 +102,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
     
     def createReleaseTasks() {
         project.gradle.taskGraph.whenReady {taskGraph ->
+            println "Task graph: $taskGraph"
             if (taskGraph.hasTask("release")) {
                 println "Configuring uploadArchives for release"
                 project.uploadArchives {
