@@ -137,7 +137,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
     def commitVersionFile() {
         
         def fileName = GRADLE_PROPERTIES_FILE
-        GitHelper.instance.commitFile(
+        GitHelper.getInstance(project).commitFile(
             project.rootDir, fileName, )
     }
     
