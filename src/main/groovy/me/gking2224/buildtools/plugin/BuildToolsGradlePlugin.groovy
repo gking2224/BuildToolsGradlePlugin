@@ -95,7 +95,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
     }
     
     def assertNoChanges() {
-        Status s = GitHelper.instance.getGitStatus(project.rootDir)
+        Status s = GitHelper.getInstance(project).getGitStatus(project.rootDir)
         Set<String> mods = s.getModified()
         assertChangesetEmpty("local changes", s.getModified())
         assertChangesetEmpty("local additions", s.getUntracked())

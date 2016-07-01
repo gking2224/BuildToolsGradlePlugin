@@ -23,6 +23,7 @@ class GitHelper {
     def sshSessionFactory
     def transportConfigCallback
     def credentialsProvider
+    def static GitHelper instance
 
     def GitHelper(def username, def password) {
         credentialsProvider = new UsernamePasswordCredentialsProvider(username, password)
@@ -53,6 +54,11 @@ class GitHelper {
                         }
                     }
                 };
+    }
+    
+    def static getInstance(def project) {
+        if (instance == null) instance = new GitHelper(project["git.username"], project["git.password"])
+        return instance
     }
 
     def Status getGitStatus(File f) {

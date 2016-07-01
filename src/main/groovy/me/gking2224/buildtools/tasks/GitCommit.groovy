@@ -13,7 +13,7 @@ class GitCommit extends DefaultTask {
     
     @TaskAction
     def doCommit() {
-        if (gitHelper == null) gitHelper = new GitHelper(project["git.username"], project["git.password"])
+        gitHelper = GitHelper.getInstance(project)
         if (project.isDryRun()) project.notRunning("GitCommit pattern=$pattern message=$message")
         else gitHelper.commitFile(project.rootDir, pattern, message)
     }
