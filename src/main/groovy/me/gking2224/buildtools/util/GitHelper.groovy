@@ -26,6 +26,7 @@ class GitHelper {
     def static GitHelper instance
 
     def GitHelper(def username, def password) {
+        println "Creating git credentials provider with username $username and password ...${password.substring(password.length()-3)}"
         credentialsProvider = new UsernamePasswordCredentialsProvider(username, password)
         sshSessionFactory = new JschConfigSessionFactory() {
                     @Override
@@ -67,6 +68,7 @@ class GitHelper {
     }
 
     def commitFile(File f, String pattern, String message) {
+        println "Committing $pattern from repository ${f.absolutePath}"
         Git git = Git.open(f)
         DirCache dc = git.add().addFilepattern(pattern).setUpdate(true).call()
         dc.getEntriesWithin(pattern).each{DirCacheEntry e-> println e.getPathString()}
