@@ -19,8 +19,6 @@ jar {
     
 }
 
-println project["git.username"]
-
 ext {
     artifactId = "me.gking2224.buildtoolsplugin.artifactid" // what does this do?
     defaultEncoding = "UTF-8"

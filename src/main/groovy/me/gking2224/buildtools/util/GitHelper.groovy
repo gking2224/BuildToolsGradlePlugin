@@ -20,13 +20,11 @@ import com.jcraft.jsch.Session
 
 class GitHelper {
 
-    private static final GitHelper instance = new GitHelper()
-
     def sshSessionFactory
     def transportConfigCallback
     def credentialsProvider
 
-    private GitHelper() {
+    def GitHelper(def username, def password) {
         credentialsProvider = new UsernamePasswordCredentialsProvider(username, password)
         sshSessionFactory = new JschConfigSessionFactory() {
                     @Override
