@@ -31,14 +31,26 @@ class UtilityTasksConfigurer {
             else return a
         }
         
+        project.task("wrapper", type: Wrapper) {
+            gradleVersion = '2.7'
+        }
+        
+        project.ext.readProps = {File f->
+            Properties props = new Properties()
+            props.load(f.newDataInputStream())
+            return props
+        }
+        
+        project.extensions.storeProps = {Properties p, File f->
+            if (project.isDryRun()) project.notRunning("StoreProps ($p) to file ${f.absolutePath}")
+            else p.store(f.newWriter(), null)
+        }
+        
         project.task("clearGradleCache") << {
             if (project.hasProperty("gradleCacheDir")) {
                 project.file(project.gradleCacheDir).delete()
             }
         }
         
-        project.task("wrapper", type: Wrapper) {
-            gradleVersion = '2.7'
-        }
     }
 }

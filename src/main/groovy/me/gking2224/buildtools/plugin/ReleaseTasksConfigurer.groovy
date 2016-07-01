@@ -109,7 +109,7 @@ class ReleaseTasksConfigurer {
             Version.IncType.PATCH
         def fileName = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
         def f = new File(fileName)
-        def props = readProps(f)
+        def props = project.readProps(f)
         
         assert props.version != null
         def v = new Version(props.version)
@@ -117,7 +117,7 @@ class ReleaseTasksConfigurer {
         println "Bumping version from ${v} to ${v2}"
         
         props.version = v2.rawVersion
-        storeProps(props, f)
+        project.storeProps(props, f)
         project.version = v2.rawVersion
     }
     
@@ -132,14 +132,14 @@ class ReleaseTasksConfigurer {
         
         def fileName = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
         def f = new File(fileName)
-        def props = readProps(f)
+        def props = project.readProps(f)
         def v = new Version(props.version)
         
         assert props.version != null
         def v2 = v.release()
         println "Changing version from ${v} to ${v2}"
         props.version = v2.rawVersion
-        storeProps(props, f)
+        project.storeProps(props, f)
         project.version = v2.rawVersion
     }
     
@@ -147,7 +147,7 @@ class ReleaseTasksConfigurer {
         
         def fileName = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
         def f = new File(fileName)
-        def props = readProps(f)
+        def props = project.readProps(f)
         def v = new Version(props.version)
         
         assert props.version != null
@@ -155,18 +155,7 @@ class ReleaseTasksConfigurer {
         println "Forcing version from ${v} to ${v2}"
         
         props.version = v2.rawVersion
-        storeProps(props, f)
+        project.storeProps(props, f)
         project.version = v2.rawVersion
-    }
-    
-    def readProps(File f) {
-        Properties props = new Properties()
-        props.load(f.newDataInputStream())
-        return props
-    }
-    
-    def storeProps(Properties p, File f) {
-        if (project.isDryRun()) project.notRunning("StoreProps ($p) to file ${f.absolutePath}")
-        else p.store(f.newWriter(), null)
     }
 }

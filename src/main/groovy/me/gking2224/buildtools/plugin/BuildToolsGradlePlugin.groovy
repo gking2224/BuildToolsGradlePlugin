@@ -22,11 +22,11 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
              EnvironmentsHandler, project)
         
         
-        if (project.file(SECRET_PROPERTIES_FILE).exists()) {
-            new PropertiesResolver(p).resolveProperties(readProps(project.file(SECRET_PROPERTIES_FILE)))
-        }
-        
         new UtilityTasksConfigurer(project).configureUtilityTasks()
+        
+        if (project.file(SECRET_PROPERTIES_FILE).exists()) {
+            new PropertiesResolver(p).resolveProperties(project.readProps(project.file(SECRET_PROPERTIES_FILE)))
+        }
         
         new RepositoryConfigurer(project).configureRepos()
         
