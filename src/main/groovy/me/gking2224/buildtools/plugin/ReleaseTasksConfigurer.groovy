@@ -26,7 +26,7 @@ class ReleaseTasksConfigurer {
     
     
     def createAssertNoChangesTask() {
-        project.task("assertNoChanges", group:GROUP) << {
+        project.task("assertNoChanges", group:BuildToolsGradlePlugin.GROUP) << {
             assertNoChanges()
         }
     }
@@ -62,13 +62,13 @@ class ReleaseTasksConfigurer {
             }
         }
         
-        project.task("release", group:GROUP,
+        project.task("release", group:BuildToolsGradlePlugin.GROUP,
             dependsOn:[
                 'check', 'assertNoChanges', 'removeSnapshot', 'uploadArchives'])
               
         
-        project.task("removeSnapshot", type:GitCommit, group:GROUP) {
-            pattern = GRADLE_PROPERTIES_FILE
+        project.task("removeSnapshot", type:GitCommit, group:BuildToolsGradlePlugin.GROUP) {
+            pattern = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
             message = "RELEASE: removing snapshot"
         }
         project.tasks.removeSnapshot.doFirst {
@@ -81,20 +81,20 @@ class ReleaseTasksConfigurer {
     
     def commitVersionFile() {
         
-        def fileName = GRADLE_PROPERTIES_FILE
+        def fileName = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
         GitHelper.getInstance(project).commitFile(
             project.rootDir, fileName, )
     }
     
     def createBumpVersionTask() {
         
-        project.task("postRelease", group:GROUP,
+        project.task("postRelease", group:BuildToolsGradlePlugin.GROUP,
             dependsOn:[
                 'bumpVersion', 'uploadArchives'])
         project.tasks.uploadArchives.mustRunAfter "bumpVersion"
         
-        project.task("bumpVersion", group:GROUP, type:GitCommit) {
-            pattern = GRADLE_PROPERTIES_FILE
+        project.task("bumpVersion", group:BuildToolsGradlePlugin.GROUP, type:GitCommit) {
+            pattern = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
             message = "RELEASE: increasing version"
         }
         project.tasks.bumpVersion.doFirst {
@@ -107,7 +107,7 @@ class ReleaseTasksConfigurer {
         def incType = (project.hasProperty("incType"))?
             (project.incType as Version.IncType):
             Version.IncType.PATCH
-        def fileName = GRADLE_PROPERTIES_FILE
+        def fileName = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
         def f = new File(fileName)
         def props = readProps(f)
         
@@ -122,7 +122,7 @@ class ReleaseTasksConfigurer {
     }
     
     def createForceVersionTask() {
-        project.task("forceVersion", group:GROUP) << {
+        project.task("forceVersion", group:BuildToolsGradlePlugin.GROUP) << {
             assert project.hasProperty("forcedVersion")
             forceVersion(project.forcedVersion)
         }
@@ -130,7 +130,7 @@ class ReleaseTasksConfigurer {
     
     def removeSnapshot() {
         
-        def fileName = GRADLE_PROPERTIES_FILE
+        def fileName = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
         def f = new File(fileName)
         def props = readProps(f)
         def v = new Version(props.version)
@@ -145,7 +145,7 @@ class ReleaseTasksConfigurer {
     
     def forceVersion(def forcedVersion) {
         
-        def fileName = GRADLE_PROPERTIES_FILE
+        def fileName = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
         def f = new File(fileName)
         def props = readProps(f)
         def v = new Version(props.version)

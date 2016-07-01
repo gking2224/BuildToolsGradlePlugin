@@ -2,8 +2,6 @@ package me.gking2224.buildtools.plugin
 
 import static org.junit.Assert.*
 
-import java.time.chrono.JapaneseChronology;
-
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Before
 import org.junit.Test
