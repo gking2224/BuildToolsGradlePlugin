@@ -77,7 +77,7 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: junitVersion
     compile "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
     compile "org.eclipse.jgit:org.eclipse.jgit.junit:$jgitVersion"
-    compile "com.jcraft:jsch:0.1.53"
+    compile "com.jcraft:jsch:0.1.51"
 }
 
 task wrapper(type: Wrapper)

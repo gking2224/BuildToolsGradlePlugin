@@ -15,6 +15,8 @@ class UtilityTasksConfigurer {
     
     def configureUtilityTasks() {
         
+        loggingFunctions()
+        
         project.ext.isDryRun = {
             if (!project.hasProperty(DRY_RUN_PROPERTY)) return false
             def dr = project.dryRun.toLowerCase()
@@ -34,9 +36,12 @@ class UtilityTasksConfigurer {
             }
         }
         
-        project.ext.resolve = {a ->
+        project.ext.resolveValue = {a ->
             if (a == null) return null
-            else if (a instanceof Closure) return a()
+            else if (a instanceof Closure) {
+                def val = a()
+                return val
+            }
             else return a
         }
         
@@ -50,7 +55,7 @@ class UtilityTasksConfigurer {
             return props
         }
         
-        project.extensions.storeProps = {Properties p, File f->
+        project.ext.storeProps = {Properties p, File f->
             if (project.isDryRun()) project.notRunning("StoreProps ($p) to file ${f.absolutePath}")
             else p.store(f.newWriter(), null)
         }
@@ -59,6 +64,23 @@ class UtilityTasksConfigurer {
             if (project.hasProperty("gradleCacheDir")) {
                 project.file(project.gradleCacheDir).delete()
             }
+        }
+        
+    }
+    def loggingFunctions() {
+        project.ext.debug = {m->
+            project.logger.debug(m)
+        }
+        
+        project.ext.info = {m->
+            project.logger.info(m)
+        }
+        
+        project.ext.error = {m->
+            project.logger.error(m)
+        }
+        project.ext.trace = {m->
+            project.logger.trace(m)
         }
         
     }

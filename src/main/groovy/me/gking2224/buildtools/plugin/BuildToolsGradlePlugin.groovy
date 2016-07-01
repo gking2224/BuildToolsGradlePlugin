@@ -21,6 +21,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
             EnvironmentsHandler.KEY,
              EnvironmentsHandler, project)
         
+        new DirectoriesConfigurer(project).configureDirectories()
         
         new UtilityTasksConfigurer(project).configureUtilityTasks()
         
