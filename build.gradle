@@ -31,6 +31,12 @@ repositories {
     mavenCentral()
 }
 
+project.gradle.taskGraph.whenReady {taskGraph ->
+    println "Task graph: {$taskGraph.allTasks}"
+    println taskGraph.hasTask(a)
+}
+
+task a
 // versions
 ext {
     junitVersion = '4.11'
