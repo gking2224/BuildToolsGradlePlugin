@@ -32,26 +32,8 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
         if (project.file(SECRET_PROPERTIES_FILE).exists()) {
             new PropertiesResolver(p).resolveProperties(readProps(project.file(SECRET_PROPERTIES_FILE)))
         }
-		if (!project.hasProperty("mavenRepo")) {
-			project.ext.mavenRepo = System.getProperty("user.home")+"/.m2/repository/"
-		}
-        def url = "file://localhost/${project.mavenRepo}"
-		project.install {
-			repositories {
-				mavenDeployer {
-					repository(url: url)
-				}
-			}
-		}
         
-        if (project.file("src/integration").exists()) {
-            configureIntegrationTests()
-        }
-		
-        createBumpVersionTask()
-        createForceVersionTask()
-        createAssertNoChangesTask()
-        createReleaseTasks()
+        new RepositoryConfigurer(project).configureRepos()
         
         project.ext.isDryRun = {
             if (!project.hasProperty("dryRun")) return false
@@ -61,6 +43,9 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
         project.ext.notRunning = {m ->
             println "DryRun - not running{$m}"
         }
+        new IntegrationTestConfigurer(project).configureIntegrationTests()
+        new ReleaseTasksConfigurer(project).configureReleaseTasks()
+		
         project.task("wrapper", type: Wrapper) {
             gradleVersion = '2.7'
         }
@@ -75,201 +60,5 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
             }
         }
 	}
-    
-    
-    def createAssertNoChangesTask() {
-        project.task("assertNoChanges", group:GROUP) << {
-            assertNoChanges()
-        }
-    }
-    
-    def assertNoChanges() {
-        Status s = GitHelper.getInstance(project).getGitStatus(project.rootDir)
-        Set<String> mods = s.getModified()
-        assertChangesetEmpty("local changes", s.getModified())
-        assertChangesetEmpty("local additions", s.getUntracked())
-        assertChangesetEmpty("remote changes", s.getAdded())
-    }
-    
-    def assertChangesetEmpty(def type, def paths) {
-        
-        if (!paths.isEmpty()) {
-            println "${paths.size()} ${type}:" 
-            paths.each{ println it }
-            throw new RuntimeException("Illegal Status: ${type}")
-        }
-    }
-    
-    def createReleaseTasks() {
-        project.gradle.taskGraph.whenReady {taskGraph ->
-            if (taskGraph.hasTask(project.tasks.release)) {
-                println "Configuring uploadArchives for release"
-                project.uploadArchives {
-                    repositories {
-                        mavenDeployer {
-                            repository(url: project["artifactory.release.url"]) {
-                                authentication(userName: project["artifactory.username"], password: project["artifactory.password"])
-                            }
-                        }
-                    }
-                }
-            }
-            else {
-                println "Configuring uploadArchives for snapshot"
-                project.uploadArchives {
-                    repositories {
-                        mavenDeployer {
-                            repository(url: project["artifactory.snapshot.url"]) {
-                                authentication(userName: project["artifactory.username"], password: project["artifactory.password"])
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        
-        project.task("release", group:GROUP,
-            dependsOn:[
-                'check', 'assertNoChanges', 'removeSnapshot', 'uploadArchives'])
-              
-        
-        project.task("removeSnapshot", type:GitCommit, group:GROUP) {
-            pattern = GRADLE_PROPERTIES_FILE
-            message = "RELEASE: removing snapshot"
-        }
-        project.tasks.removeSnapshot.doFirst {
-            removeSnapshot()
-        }
-        project.tasks.assertNoChanges.mustRunAfter "check"
-        project.tasks.removeSnapshot.mustRunAfter "assertNoChanges"
-        project.tasks.uploadArchives.mustRunAfter "removeSnapshot"
-    }
-    
-    def commitVersionFile() {
-        
-        def fileName = GRADLE_PROPERTIES_FILE
-        GitHelper.getInstance(project).commitFile(
-            project.rootDir, fileName, )
-    }
-    
-    def createBumpVersionTask() {
-        
-        project.task("postRelease", group:GROUP,
-            dependsOn:[
-                'bumpVersion', 'uploadArchives'])
-        project.tasks.uploadArchives.mustRunAfter "bumpVersion"
-        
-        project.task("bumpVersion", group:GROUP, type:GitCommit) {
-            pattern = GRADLE_PROPERTIES_FILE
-            message = "RELEASE: increasing version"
-        }
-        project.tasks.bumpVersion.doFirst {
-            bumpVersion()
-        }
-    }
-    
-    def bumpVersion() {
-        
-        def incType = (project.hasProperty("incType"))?
-            (project.incType as Version.IncType):
-            Version.IncType.PATCH
-        def fileName = GRADLE_PROPERTIES_FILE
-        def f = new File(fileName)
-        def props = readProps(f)
-        
-        assert props.version != null
-        def v = new Version(props.version)
-        def v2 = v.increment(incType)
-        println "Bumping version from ${v} to ${v2}"
-        
-        props.version = v2.rawVersion
-        storeProps(props, f)
-        project.version = v2.rawVersion
-    }
-    
-    def createForceVersionTask() {
-        project.task("forceVersion", group:GROUP) << {
-            assert project.hasProperty("forcedVersion")
-            forceVersion(project.forcedVersion)
-        }
-    }
-    
-    def removeSnapshot() {
-        
-        def fileName = GRADLE_PROPERTIES_FILE
-        def f = new File(fileName)
-        def props = readProps(f)
-        def v = new Version(props.version)
-        
-        assert props.version != null
-        def v2 = v.release()
-        println "Changing version from ${v} to ${v2}"
-        props.version = v2.rawVersion
-        storeProps(props, f)
-        project.version = v2.rawVersion
-    }
-    
-    def forceVersion(def forcedVersion) {
-        
-        def fileName = GRADLE_PROPERTIES_FILE
-        def f = new File(fileName)
-        def props = readProps(f)
-        def v = new Version(props.version)
-        
-        assert props.version != null
-        def v2 = new Version(forcedVersion)
-        println "Forcing version from ${v} to ${v2}"
-        
-        props.version = v2.rawVersion
-        storeProps(props, f)
-        project.version = v2.rawVersion
-    }
-    
-    def readProps(File f) {
-        Properties props = new Properties()
-        props.load(f.newDataInputStream())
-        return props
-    }
-    
-    def storeProps(Properties p, File f) {
-        if (project.isDryRun()) project.notRunning("StoreProps ($p) to file ${f.absolutePath}")
-        else p.store(f.newWriter(), null)
-    }
-    
-    def configureIntegrationTests() {
-        
-        project.sourceSets {
-            integration {
-                java {
-                    srcDir project.file("src/integration/java")
-                    compileClasspath += main.output + test.output
-                }
-                groovy {
-                    srcDir project.file("src/integration/groovy")
-                    compileClasspath += main.output + test.output
-                }
-                resources.srcDir project.file("src/integration/resources")
-                output.classesDir = "build/integration-classes"
-            }
-            test.output.classesDir = "build/test-classes"
-            main.output.classesDir = "build/classes"
-        }
-        
-        project.configurations {
-            integrationCompile.extendsFrom testCompile
-            integrationRuntime.extendsFrom testRuntime
-        }
-        
-        project.task("integrationTest", group:"Verification tasks", type:Test, dependsOn:['integrationClasses']) {
-            testClassesDir = project.sourceSets.integration.output.classesDir
-            classpath = project.sourceSets.integration.runtimeClasspath
-        }
-        project.tasks.withType(Test) {task->
-            task.reports.html.destination = project.file("${project.reporting.baseDir}/${name}")
-        }
-        
-        
-//        project.tasks.check.dependsOn "integrationTest"
-    }
 }
 
