@@ -43,6 +43,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
 				}
 			}
 		}
+        println "uploadArchives not configured"
 //        project.uploadArchives {
 //            repositories {
 //                mavenDeployer {
