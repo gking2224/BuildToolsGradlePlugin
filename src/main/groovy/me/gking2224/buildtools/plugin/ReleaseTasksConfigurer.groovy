@@ -42,8 +42,8 @@ class ReleaseTasksConfigurer {
     def assertChangesetEmpty(def type, def paths) {
         
         if (!paths.isEmpty()) {
-            println "${paths.size()} ${type}:" 
-            paths.each{ println it }
+            project.info "${paths.size()} $type"
+            paths.each{ project.info it }
             throw new RuntimeException("Illegal Status: ${type}")
         }
     }
@@ -114,7 +114,7 @@ class ReleaseTasksConfigurer {
         assert props.version != null
         def v = new Version(props.version)
         def v2 = v.increment(incType)
-        println "Bumping version from ${v} to ${v2}"
+        project.info "Bumping version from ${v} to ${v2}"
         
         props.version = v2.rawVersion
         project.storeProps(props, f)
@@ -137,7 +137,7 @@ class ReleaseTasksConfigurer {
         
         assert props.version != null
         def v2 = v.release()
-        println "Changing version from ${v} to ${v2}"
+        project.info "Changing version from ${v} to ${v2}"
         props.version = v2.rawVersion
         project.storeProps(props, f)
         project.version = v2.rawVersion
@@ -152,7 +152,7 @@ class ReleaseTasksConfigurer {
         
         assert props.version != null
         def v2 = new Version(forcedVersion)
-        println "Forcing version from ${v} to ${v2}"
+        project.info "Forcing version from ${v} to ${v2}"
         
         props.version = v2.rawVersion
         project.storeProps(props, f)

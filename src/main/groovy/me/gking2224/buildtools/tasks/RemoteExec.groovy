@@ -29,15 +29,15 @@ class RemoteExec extends DefaultTask {
     def doExec() {
         assert host != null
         
-        def h = project.resolveValue(host)
-        def u = project.resolveValue(remoteUser)
+        def host = project.resolveValue(host)
+        def remoteUser = project.resolveValue(remoteUser)
         
         jsch=new JSch()
         
         def kf = getKeyFile()
         jsch.addIdentity(kf)
         
-        Session session=jsch.getSession(u, h, port)
+        Session session=jsch.getSession(remoteUser, host, port)
         java.util.Properties config = new java.util.Properties();
         config.put("StrictHostKeyChecking", "no");
         session.setConfig(config);
@@ -71,22 +71,20 @@ class RemoteExec extends DefaultTask {
     abstract class Action {
         abstract def _executeAction(Session s)
         def Project project
+        def BufferedReader reader
         
         def Action(Project p) {
             this.project = p
         }
         def doIt(Session s) {
+            
             _executeAction(s)
         }
         
         def setStreams(Channel c) {
-            c.setInputStream(new java.io.InputStream() {
-                @Override
-                public int read() {}
-            });
-            c.setOutputStream(new java.io.OutputStream() {
-                public void write(int b) {}
-            });
+            reader = new BufferedReader(new InputStreamReader(c.getInputStream()))
+//            c.setInputStream(System.in);
+//            c.setOutputStream(System.out);
         }
     }
     
@@ -100,16 +98,23 @@ class RemoteExec extends DefaultTask {
         }
         @Override
         def _executeAction(Session s) {
-            def f = resolveFile()
+            fromDir = project.resolveValue(fromDir)
+            file = project.resolveValue(file)
+            toDir = project.resolveValue(toDir)
+            file = resolveFile()
+            project.info "scp -P ${s.port} $file ${s.userName}@${s.host}:${toDir}"
             ChannelSftp channel = s.openChannel("sftp")
+            setStreams(channel)
             channel.connect()
-            channel.put(f, toDir)
+            channel.put(file, toDir)
+            channel.outputStream.flush()
+            channel.inputStream.close()
+            channel.outputStream.close()
             channel.close()
-            project.info "scp -P ${s.port} $f ${s.userName}@${s.host}:${toDir}"
         }
         
         def resolveFile() {
-            def f = "$fromDir/$file"
+            def f = "${fromDir}/${file}"
             def File ff = project.file(f)
             assert ff.exists()
             f
@@ -118,6 +123,7 @@ class RemoteExec extends DefaultTask {
     
     class Exec extends Action {
         def cmd
+        def BufferedReader errReader
         
         def Exec(Project p) {
             super(p)
@@ -131,16 +137,25 @@ class RemoteExec extends DefaultTask {
                 c = [cmd]
             }
             def cmds = cmd.collect { project.resolveValue(it) }
-            ChannelExec channel = s.openChannel("exec")
-            setStreams(channel)
-            channel.setErrStream(System.err)
-            channel.connect()
+            
             cmds.each {cc->
+                ChannelExec channel = s.openChannel("exec")
                 project.info "ssh ${s.userName}@${s.host} $cc"
-                channel.setCommand(cc)
-                channel.start()
+                channel.setCommand(cc + "\n")
+                setStreams(channel)
+                errReader = new BufferedReader(new InputStreamReader(channel.getErrStream()))
+                channel.connect()
+                
+                def outputLine = null
+                while ((outputLine = reader.readLine()) != null) {
+                    project.info("<${s.host} stdout> $outputLine")
+                }
+                outputLine = null
+                while ((outputLine = errReader.readLine()) != null) {
+                    project.error("<${s.host} stderr> $outputLine")
+                }
+                channel.disconnect()
             }
-            channel.disconnect()
         }
     }
 }
