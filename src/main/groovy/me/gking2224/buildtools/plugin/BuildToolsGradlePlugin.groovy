@@ -11,6 +11,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
     static final String GROUP = "Build Tools"
     static final String GRADLE_PROPERTIES_FILE = "gradle.properties"
     static final String SECRET_PROPERTIES_FILE = "secret.properties"
+    static final String SECRET_BUILD_FILE = "secret.gradle"
     
     def Project project
 
@@ -21,13 +22,19 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
             EnvironmentsHandler.KEY,
              EnvironmentsHandler, project)
         
-        new DirectoriesConfigurer(project).configureDirectories()
-        
         new UtilityTasksConfigurer(project).configureUtilityTasks()
+        
+        new DefaultProjectConfigurer(project).configure()
         
         if (project.file(SECRET_PROPERTIES_FILE).exists()) {
             new PropertiesResolver(p).resolveProperties(project.readProps(project.file(SECRET_PROPERTIES_FILE)))
         }
+        
+        if (project.file(SECRET_BUILD_FILE).exists()) {
+            project.apply(from:SECRET_BUILD_FILE)
+        }
+        
+        new DirectoriesConfigurer(project).configureDirectories()
         
         new RepositoryConfigurer(project).configureRepos()
         

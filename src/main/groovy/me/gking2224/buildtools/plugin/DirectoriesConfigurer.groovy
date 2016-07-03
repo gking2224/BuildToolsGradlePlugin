@@ -12,5 +12,7 @@ class DirectoriesConfigurer {
 
     def configureDirectories() {
         project.ext.scriptsDir = project.file("scripts")
+        project.ext.runDir = project.file(project.fileNameFromParts(project.buildDir, project.runId))
+        project.runDir.mkdirs()
     }
 }

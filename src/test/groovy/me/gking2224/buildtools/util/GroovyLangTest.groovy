@@ -2,6 +2,7 @@ package me.gking2224.buildtools.util;
 
 import static org.junit.Assert.*
 
+import org.codehaus.groovy.runtime.GStringImpl
 import org.junit.Test
 
 class GroovyLangTest {
@@ -19,4 +20,23 @@ class GroovyLangTest {
         assertEquals("1,2", [1,2].join(","))
     }
 
+    @Test
+    def void stringTypeTest() {
+        assert !String.isAssignableFrom(GStringImpl)
+    }
+    
+    @Test
+    def void byteArrayConcatTest() {
+        def b1 = [0, 1, 2, 3] 
+        def b2 = [4, 5, 6, 7]
+        
+        assert b1.plus(b2) == [0, 1, 2, 3, 4, 5, 6, 7]
+        assert b1 + b2 == [0, 1, 2, 3, 4, 5, 6, 7]
+        
+    }
+    @Test
+    def void testListLiteral() {
+        def l = []
+        assertNotNull(l)
+    }
 }

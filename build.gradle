@@ -34,6 +34,7 @@ repositories {
 // versions
 ext {
     junitVersion = '4.11'
+    mockitoVersion = '1.10.19'
     jgitVersion = "4.4.0.201606070830-r"
 }
 
@@ -69,9 +70,11 @@ dependencies {
     compile gradleApi()
     compile localGroovy()
     testCompile group: 'junit', name: 'junit', version: junitVersion
+    testCompile group: 'org.mockito', name: 'mockito-all', version: mockitoVersion
     compile "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
     compile "org.eclipse.jgit:org.eclipse.jgit.junit:$jgitVersion"
     compile "com.jcraft:jsch:0.1.51"
+    compile "org.codehaus.groovy:groovy-templates:2.4.7"
 }
 
 task wrapper(type: Wrapper)
