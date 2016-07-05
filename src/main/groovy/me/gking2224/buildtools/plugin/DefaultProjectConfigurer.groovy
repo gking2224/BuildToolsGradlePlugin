@@ -1,6 +1,8 @@
 package me.gking2224.buildtools.plugin
 
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.internal.plugins.DefaultExtraPropertiesExtension
 import org.gradle.api.tasks.wrapper.Wrapper
 
 class DefaultProjectConfigurer {
@@ -17,9 +19,13 @@ class DefaultProjectConfigurer {
         
         runId()
         
+        project.pluginManager.apply "maven"
+        
         project.task("wrapper", type: Wrapper) {
             gradleVersion = '2.7'
         }
+        
+        resolveValues()
     }
     
     def eclipse() {
@@ -59,6 +65,18 @@ class DefaultProjectConfigurer {
     def runId() {
         if (!project.hasProperty("runId")) {
             project.ext.runId = project.randomString(16)
+        }
+    }
+    
+    def resolveValues() {
+        project.gradle.taskGraph.beforeTask {Task t->
+            if (t != null && t.hasProperty("ext") && DefaultExtraPropertiesExtension.class.isAssignableFrom(t.ext.getClass())) {
+                t.ext.getProperties().findAll{k,v->
+                    Closure.class.isAssignableFrom(v.getClass())
+                }.each {k,v->
+                    t[k] = v()
+                }
+            }
         }
     }
 
