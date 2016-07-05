@@ -50,6 +50,9 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
                         classpath.entries.findAll {
                             it instanceof org.gradle.plugins.ide.eclipse.model.SourceFolder && it.path.startsWith("src/test/")
                         }*.output = "build/test-classes"
+                        classpath.entries.findAll {
+                            it instanceof org.gradle.plugins.ide.eclipse.model.SourceFolder && it.path.startsWith("src/integration/")
+                        }*.output = "build/integration-classes"
                     }
                 }
                 downloadSources = true
