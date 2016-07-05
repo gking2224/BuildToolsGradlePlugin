@@ -43,11 +43,11 @@ class BuildToolsGradlePluginTest {
     }
     
     @Test
-    public void testResolve() {
-        assertEquals( "string", project.resolve("string") )
-        assertNull( project.resolve(null) )
+    public void resolveValue() {
+        assertEquals( "string", project.resolveValue("string") )
+        assertNull( project.resolveValue(null) )
         def n = "value_of_n"
         def c = { return n }
-        assertEquals(n, project.resolve(c) )
+        assertEquals(n, project.resolveValue(c) )
     }
 }

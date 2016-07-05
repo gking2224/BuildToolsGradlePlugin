@@ -5,24 +5,20 @@ import org.gradle.api.Task
 import org.gradle.api.internal.plugins.DefaultExtraPropertiesExtension
 import org.gradle.api.tasks.wrapper.Wrapper
 
-class DefaultProjectConfigurer {
-
-    def Project project
+class DefaultProjectConfigurer extends AbstractProjectConfigurer {
     
     public DefaultProjectConfigurer(Project p) {
-        project = p
+        super(p)
     }
     
-    def configure() {
+    def configureProject() {
         
         eclipse()
         
         runId()
         
-        project.pluginManager.apply "maven"
-        
         project.task("wrapper", type: Wrapper) {
-            gradleVersion = '2.7'
+            gradleVersion = '2.14'
         }
         
         resolveValues()
@@ -30,7 +26,7 @@ class DefaultProjectConfigurer {
     
     def eclipse() {
         
-        project.pluginManager.apply "eclipse"
+        if (!project.pluginManager.hasPlugin("eclipse")) project.pluginManager.apply "eclipse"
         project.eclipse {
             project {
                 buildCommand 'org.eclipse.jdt.core.javabuilder'
@@ -74,6 +70,7 @@ class DefaultProjectConfigurer {
                 t.ext.getProperties().findAll{k,v->
                     Closure.class.isAssignableFrom(v.getClass())
                 }.each {k,v->
+                    logger.debug "Auto-resolving closure property $k on task $t.name"
                     t[k] = v()
                 }
             }

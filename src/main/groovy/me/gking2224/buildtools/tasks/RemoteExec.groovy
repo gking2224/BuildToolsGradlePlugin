@@ -11,7 +11,8 @@ import com.jcraft.jsch.Session
 
 class RemoteExec extends DefaultTask {
     
-    Logger logger = LoggerFactory.getLogger(this.class)
+    Logger logger = LoggerFactory.getLogger(RemoteExec.class)
+    
     def host
     def remoteUser = System.getProperty("user.name")
     def port = 22
@@ -30,8 +31,9 @@ class RemoteExec extends DefaultTask {
     @TaskAction
     def doExec() {
         assert host != null
-        
+        println host
         host = project.resolveValue(host)
+        println host
         remoteUser = project.resolveValue(remoteUser)
         remotePassword = project.resolveValue(remotePassword)
         ext.getProperties().each {k,v->

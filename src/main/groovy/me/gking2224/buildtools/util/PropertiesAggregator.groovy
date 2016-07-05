@@ -41,6 +41,7 @@ class PropertiesAggregator {
             if (k == "properties" || k == "ext") v = "<removed $k>"
             if ([String,GString].any {it.isAssignableFrom(v.getClass())}) {
                 properties[prefix][k] = v
+                properties["$prefix.$k"] = v
                 
                 if (!properties.containsKey(k)) properties[k] = v
                 else if (properties[k] != v){

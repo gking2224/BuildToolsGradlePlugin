@@ -17,7 +17,7 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
         super(p)
     }
     
-    def configureUtilityTasks() {
+    def configureProject() {
         
         loggingFunctions()
         utilityFunctions()

@@ -3,15 +3,14 @@ package me.gking2224.buildtools.plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.Test
 
-class IntegrationTestConfigurer {
-
-    def Project project
+class IntegrationTestConfigurer extends AbstractProjectConfigurer {
     
     def IntegrationTestConfigurer(Project p) {
-        this.project = p
+        super(p)
     }
     
-    def configureIntegrationTests() {
+    def configureProject() {
+        
         project.task("checkIntegration", group: "Verification tasks")
         if (project.file("src/integration").exists()) {
             project.sourceSets {

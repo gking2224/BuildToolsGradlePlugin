@@ -1,11 +1,12 @@
 package me.gking2224.buildtools.plugin
 
 import org.gradle.api.Project
-import org.slf4j.LoggerFactory;
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-abstract class AbstractProjectConfigurer {
+abstract class AbstractProjectConfigurer implements ProjectConfigurer {
 
-    def logger = LoggerFactory.getLogger(this.class)
+    Logger logger = LoggerFactory.getLogger(this.class)
     def Project project 
     
     public AbstractProjectConfigurer(Project p) {

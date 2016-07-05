@@ -7,23 +7,19 @@ import me.gking2224.buildtools.util.Version
 import org.eclipse.jgit.api.Status
 import org.gradle.api.Project
 
-class ReleaseTasksConfigurer {
-    
-    def Project project
+class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
     
     def ReleaseTasksConfigurer(Project p) {
-        this.project = p
+        super(p)
     }
     
-    def configureReleaseTasks() {
+    def configureProject() {
         
         createBumpVersionTask()
         createForceVersionTask()
         createAssertNoChangesTask()
         createReleaseTasks()
-        
     }
-    
     
     def createAssertNoChangesTask() {
         project.task("assertNoChanges", group:BuildToolsGradlePlugin.GROUP) << {
@@ -65,7 +61,6 @@ class ReleaseTasksConfigurer {
         project.task("release", group:BuildToolsGradlePlugin.GROUP,
             dependsOn:[
                 'check', 'assertNoChanges', 'removeSnapshot', 'uploadArchives'])
-              
         
         project.task("removeSnapshot", type:GitCommit, group:BuildToolsGradlePlugin.GROUP) {
             pattern = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE

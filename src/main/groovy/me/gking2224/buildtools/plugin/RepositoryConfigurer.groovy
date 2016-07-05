@@ -2,24 +2,25 @@ package me.gking2224.buildtools.plugin
 
 import org.gradle.api.Project
 
-class RepositoryConfigurer {
-
-    def Project project
+class RepositoryConfigurer extends AbstractProjectConfigurer {
+    
+    static final String DEFAULT_LOCAL_MAVEN_REPO = "file://localhost/${System.getProperty('user.home')}/.m2/repository/"
     
     def RepositoryConfigurer(Project p) {
-        this.project = p
+        super(p)
     }
     
-    def configureRepos() {
+    def configureProject() {
+        if (!project.pluginManager.hasPlugin("maven")) project.pluginManager.apply "maven"
         
-        if (!project.hasProperty("mavenRepo")) {
-            project.ext.mavenRepo = System.getProperty("user.home")+"/.m2/repository/"
+        if (!project.hasProperty("localMavenRepo")) {
+            logger.debug("No property 'localMavenRepo' defined, using default value: $DEFAULT_LOCAL_MAVEN_REPO")
+            project.ext.localMavenRepo = DEFAULT_LOCAL_MAVEN_REPO
         }
-        def url = "file://localhost/${project.mavenRepo}"
         project.install {
             repositories {
                 mavenDeployer {
-                    repository(url: url)
+                    repository(url: project.localMavenRepo)
                 }
             }
         }

@@ -1,7 +1,5 @@
 package me.gking2224.buildtools.plugin
 
-import me.gking2224.buildtools.util.PropertiesResolver
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
@@ -10,36 +8,31 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
     static final String NAME = "me.gking2224.buildtools"
     static final String GROUP = "Build Tools"
     static final String GRADLE_PROPERTIES_FILE = "gradle.properties"
-    static final String SECRET_PROPERTIES_FILE = "secret.properties"
-    static final String SECRET_BUILD_FILE = "secret.gradle"
     
     def Project project
+    
+    def configurers = []
 
 	void apply(Project p) {
+        
         this.project = p
         // declare envs extension
         project.extensions.create(
             EnvironmentsHandler.KEY,
              EnvironmentsHandler, project)
         
-        new UtilityTasksConfigurer(project).configureUtilityTasks()
+        configurers << new UtilityTasksConfigurer(project)
+        configurers << new DefaultProjectConfigurer(project)
+        configurers << new SecretPropertiesConfigurer(project)
+        configurers << new DirectoriesConfigurer(project)
+        configurers << new RepositoryConfigurer(project)
+        configurers << new IntegrationTestConfigurer(project)
+        configurers << new ReleaseTasksConfigurer(project)
         
-        new DefaultProjectConfigurer(project).configure()
         
-        if (project.file(SECRET_PROPERTIES_FILE).exists()) {
-            new PropertiesResolver(p).resolveProperties(project.readProps(project.file(SECRET_PROPERTIES_FILE)))
+        configurers.each {c->
+            c.configureProject()
         }
-        
-        if (project.file(SECRET_BUILD_FILE).exists()) {
-            project.apply(from:SECRET_BUILD_FILE)
-        }
-        
-        new DirectoriesConfigurer(project).configureDirectories()
-        
-        new RepositoryConfigurer(project).configureRepos()
-        
-        new IntegrationTestConfigurer(project).configureIntegrationTests()
-        new ReleaseTasksConfigurer(project).configureReleaseTasks()
 		
 	}
 }
