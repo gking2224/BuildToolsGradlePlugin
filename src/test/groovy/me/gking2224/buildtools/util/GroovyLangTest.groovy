@@ -39,4 +39,12 @@ class GroovyLangTest {
         def l = []
         assertNotNull(l)
     }
+    
+    @Test
+    def void mapFind() {
+        Map m = [a:{println 'boo'}]
+        m.find {k->
+            println "${k.value.class}"
+        }
+    }
 }

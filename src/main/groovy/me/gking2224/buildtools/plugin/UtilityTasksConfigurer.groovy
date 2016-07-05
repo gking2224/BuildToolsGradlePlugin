@@ -97,7 +97,6 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
             }
         }
         project.ext.filteredFile = {def f, def objects->
-            println "templateObjects: $objects"
             def asString = [String,GString].any { it.isAssignableFrom(f.class) }
             if (asString) {
                 f = new File(f)

@@ -31,14 +31,10 @@ class RemoteExec extends DefaultTask {
     @TaskAction
     def doExec() {
         assert host != null
-        println host
-        host = project.resolveValue(host)
-        println host
-        remoteUser = project.resolveValue(remoteUser)
-        remotePassword = project.resolveValue(remotePassword)
-        ext.getProperties().each {k,v->
-            ext[k] = project.resolveValue(ext[k])
-        }
+//        println "host after resolve $host"
+//        ext.getProperties().each {k,v->
+//            ext[k] = project.resolveValue(ext[k])
+//        }
         _jsch = new JSch()
         
         def kf = getKeyFile()

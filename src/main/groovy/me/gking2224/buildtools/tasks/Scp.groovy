@@ -58,7 +58,6 @@ class Scp extends RemoteAction {
     }
     
     def templateObj(String name, Map m) {
-        println m
         templateObjects[name] = m
     }
 }
