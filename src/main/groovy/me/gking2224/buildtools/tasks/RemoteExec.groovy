@@ -11,8 +11,6 @@ import com.jcraft.jsch.Session
 
 class RemoteExec extends DefaultTask {
     
-    Logger logger = LoggerFactory.getLogger(RemoteExec.class)
-    
     def host
     def remoteUser = System.getProperty("user.name")
     def port = 22

@@ -100,7 +100,7 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
             def asString = [String,GString].any { it.isAssignableFrom(f.class) }
             if (asString) {
                 f = new File(f)
-            } 
+            }
             objects["project"] = project
             
             def dir = new File(project.fileNameFromParts(project.runDir, project.randomString(16)))
