@@ -97,6 +97,12 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
             }
         }
         project.ext.filteredFile = {def f, def objects->
+            logger.debug("filteredFile: $f, $objects")
+            if (f == null) return null
+            else if (Iterable.class.isAssignableFrom(f.class)) {
+                return f.collect {project.filteredFile(it, objects)}
+            }
+            
             def asString = [String,GString].any { it.isAssignableFrom(f.class) }
             if (asString) {
                 f = new File(f)
@@ -110,6 +116,7 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
             File ff = new File(dir, f.name)
             
             def Template template = new StreamingTemplateEngine().createTemplate(new FileReader(f))
+            template.
             def binding = new PropertiesAggregator().aggregate(objects)
             def fw = new FileWriter(ff)
             fw.write(template.make(binding))

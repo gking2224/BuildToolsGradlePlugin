@@ -37,7 +37,7 @@ class IntegrationTestConfigurer extends AbstractProjectConfigurer {
             
             project.task("integrationTest", group:"Verification tasks", type:Test, dependsOn:['integrationClasses']) {
                 testClassesDir = project.sourceSets.integration.output.classesDir
-                classpath = project.sourceSets.integration.runtimeClasspath
+                classpath = project.sourceSets.integration.runtimeClasspath + project.sourceSets.main.output + project.sourceSets.test.output
             }
             project.tasks.withType(Test) {task->
                 task.reports.html.destination = project.file("${project.reporting.baseDir}/${name}")

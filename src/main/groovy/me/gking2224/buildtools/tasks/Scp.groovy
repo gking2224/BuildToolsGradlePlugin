@@ -1,6 +1,7 @@
 package me.gking2224.buildtools.tasks
 
 import org.gradle.api.Project
+import org.gradle.api.file.FileCollection
 
 import com.jcraft.jsch.ChannelSftp
 
@@ -17,23 +18,26 @@ class Scp extends RemoteAction {
     
     @Override
     def validate() {
-        assert fromDir != null : "missing mandatory input: 'fromDir'"
-        assert to != null : "missing mandatory input: 'to'"
         assert file != null : "missing mandatory input: 'file'"
+        file = project.resolveValue(file)
+        assert to != null : "missing mandatory input: 'to'"
         
         fromDir = project.resolveValue(fromDir)
-        file = project.resolveValue(file)
         to = project.resolveValue(to)
-        file = resolveFile()
+        file = fileHelper.fileCollection(fromDir, file)
+        file.each{assert it.exists()}
     }
     
     @Override
     def _executeAction() {
         if (template) {
             templateObjects.putAll ([action:this, task:task])
-            file = project.filteredFile(file, templateObjects)
+            file = file.collect {project.filteredFile(it, templateObjects)}
         }
-        def strCommand = "scp -P ${session.port} $file ${session.userName}@${session.host}:${to}"
+        def filesStr = fileHelper.filesAsString(file)
+        
+        logger.debug("Files: "+file)
+        def strCommand = "scp -P ${session.port} $filesStr ${session.userName}@${session.host}:${to}"
         logger.info strCommand
         project.dryRunExecute(strCommand, {
             def ChannelSftp channel
@@ -41,7 +45,9 @@ class Scp extends RemoteAction {
                 channel = session.openChannel("sftp")
                 setStreams(channel)
                 channel.connect()
-                channel.put(file, to)
+                file.each{
+                    channel.put(it.absolutePath, to)
+                }
             }
             finally {
                 logger.debug "Closing sftp channel"
@@ -50,14 +56,8 @@ class Scp extends RemoteAction {
         })
     }
     
-    def resolveFile() {
-        def f = project.fileNameFromParts fromDir, file
-        def File ff = project.file(f)
-        assert ff.exists()
-        f
-    }
-    
     def templateObj(String name, Map m) {
         templateObjects[name] = m
     }
+    
 }

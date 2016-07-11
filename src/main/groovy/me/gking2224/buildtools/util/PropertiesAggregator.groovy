@@ -45,12 +45,12 @@ class PropertiesAggregator {
                 
                 if (!properties.containsKey(k)) properties[k] = v
                 else if (properties[k] != v){
-                    logger.warn("Got conflicted key: $k")
+//                    logger.warn("Got conflicted key: $k")
                     properties[k] = CONFLICT
                 }
             }
             else {
-                logger.debug "not adding $k with value of type ${v.getClass()}"
+//                logger.debug "not adding $k with value of type ${v.getClass()}"
             }
         }
     }

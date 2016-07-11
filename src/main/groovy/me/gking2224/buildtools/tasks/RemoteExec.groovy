@@ -29,10 +29,6 @@ class RemoteExec extends DefaultTask {
     @TaskAction
     def doExec() {
         assert host != null
-//        println "host after resolve $host"
-//        ext.getProperties().each {k,v->
-//            ext[k] = project.resolveValue(ext[k])
-//        }
         _jsch = new JSch()
         
         def kf = getKeyFile()
@@ -51,6 +47,7 @@ class RemoteExec extends DefaultTask {
         
         Session session = null;
         try {
+            logger.debug("getSession with $remoteUser $host $port")
             session = _jsch.getSession(remoteUser, host, port)
             if (kf == null) {
                 logger.debug "Using password"
@@ -94,10 +91,12 @@ class RemoteExec extends DefaultTask {
             }
         }
         finally {
-            project.dryRunExecute("Not disconnecting jsch session", {
-                logger.debug("Closing jsch session")
-                session.disconnect()
-            })
+            if (session != null) {
+                project.dryRunExecute("Not disconnecting jsch session", {
+                    logger.debug("Closing jsch session")
+                    session.disconnect()
+                })
+            }
         }
     }
     

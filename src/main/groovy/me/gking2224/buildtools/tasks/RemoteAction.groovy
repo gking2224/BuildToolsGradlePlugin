@@ -1,5 +1,7 @@
 package me.gking2224.buildtools.tasks
 
+import me.gking2224.buildtools.util.FileHelper
+
 import org.gradle.api.Project
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,6 +25,7 @@ abstract class RemoteAction {
     def BufferedReader stderrReader
     def failOnError = true
     def task
+    def FileHelper fileHelper = FileHelper.instance()
     
     abstract def _executeAction()
     
