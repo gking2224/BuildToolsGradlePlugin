@@ -47,4 +47,16 @@ class GroovyLangTest {
             println "${k.value.class}"
         }
     }
+    
+    @Test
+    def void arrayTest() {
+        def a = ["mysql",
+             "-h", "x",
+             "-P", "x",
+             "-u", "x",
+             "-D", "x",
+             "-p", "x",
+             "-e", "x"] as List
+        a.toArray(new String[a.size()])
+    }
 }

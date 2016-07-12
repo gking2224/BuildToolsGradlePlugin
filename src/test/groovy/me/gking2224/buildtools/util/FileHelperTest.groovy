@@ -11,12 +11,15 @@ class FileHelperTest {
 
     def fh
     def file
+    def f2
     
     @Before
     void before() {
         fh = FileHelper.instance()
         file = new File("/tmp/deleteme")
         file.createNewFile()
+        f2 = new File("/tmp/alsodeleteme")
+        f2.createNewFile()
     }
     
     @Test
@@ -52,6 +55,13 @@ class FileHelperTest {
         assertEquals([file, file], fh.fileCollection("/tmp", [file, "deleteme"]))
         assertEquals([], fh.fileCollection("/tmp", null))
         assertEquals([], fh.fileCollection("/tmp", []))
+    }
+    
+    @Test
+    public void filesFromPattern() {
+        assertEquals([f2, file], fh.filesFromPattern(new File("/tmp/"), ".*delete.*"))
+        assertEquals([f2, file], fh.filesFromPattern("/tmp/", ".*delete.*"))
+        assertEquals([file], fh.filesFromPattern(new File("/tmp/"), "^delete.*"))
     }
 
 }

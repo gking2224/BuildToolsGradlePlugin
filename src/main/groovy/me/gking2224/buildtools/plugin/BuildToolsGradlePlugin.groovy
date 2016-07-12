@@ -21,6 +21,7 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
             EnvironmentsHandler.KEY,
              EnvironmentsHandler, project)
         
+//        configurers << new ProjectLifecycleConfigurer(project)
         configurers << new UtilityTasksConfigurer(project)
         configurers << new DefaultProjectConfigurer(project)
         configurers << new SecretPropertiesConfigurer(project)
@@ -33,7 +34,6 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
         configurers.each {c->
             c.configureProject()
         }
-		
 	}
 }
 

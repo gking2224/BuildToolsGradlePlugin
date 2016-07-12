@@ -2,6 +2,7 @@ package me.gking2224.buildtools.plugin
 
 import groovy.text.StreamingTemplateEngine
 import groovy.text.Template
+import me.gking2224.buildtools.util.FileHelper;
 import me.gking2224.buildtools.util.FilePath
 import me.gking2224.buildtools.util.PropertiesAggregator
 import me.gking2224.buildtools.util.RandomString
@@ -53,6 +54,7 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
         project.ext.resolveValue = {a ->
             if (a == null) return null
             else if (a instanceof Closure) {
+                a.delegate = project
                 def val = a()
                 return val
             }
@@ -72,6 +74,10 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
         
         project.ext.fileNameFromParts = {Object... o->
             FilePath.pathFromParts(o)
+        }
+        
+        project.ext.filesFromPattern = {def dir, def pattern->
+            FileHelper.instance().filesFromPattern(dir, pattern)
         }
         
         project.ext.withinTimeout = {Long startTime, Long timeoutMillis->
@@ -116,7 +122,6 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
             File ff = new File(dir, f.name)
             
             def Template template = new StreamingTemplateEngine().createTemplate(new FileReader(f))
-            template.
             def binding = new PropertiesAggregator().aggregate(objects)
             def fw = new FileWriter(ff)
             fw.write(template.make(binding))

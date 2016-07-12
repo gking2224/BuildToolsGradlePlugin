@@ -1,6 +1,8 @@
 package me.gking2224.buildtools.util
 
-import org.slf4j.LoggerFactory;
+import java.util.regex.Pattern
+
+import org.slf4j.LoggerFactory
 
 class FileHelper {
     
@@ -60,5 +62,15 @@ class FileHelper {
                 sb.substring(0, sb.length()-2) + "]"
             }
         }
+    }
+    
+    def filesFromPattern(def dir, def pattern) {
+//        println pattern.class
+//        Pattern pp = Pattern.compile(pattern)
+        if ([String,GString].any {it.isAssignableFrom(dir.class)}) {
+            dir = new File(dir)
+        }
+        
+        dir.listFiles().findAll{it.name ==~ pattern}
     }
 }

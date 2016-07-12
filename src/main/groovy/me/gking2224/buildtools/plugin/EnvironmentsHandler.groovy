@@ -20,13 +20,8 @@ class EnvironmentsHandler {
     def env(String env, Closure c) {
         assert project.hasProperty("env")
         def sysEnv = project.env
-        logger.debug "System property 'env': $sysEnv"
         if (sysEnv == env) {
-            EnvironmentConfig ec = new EnvironmentConfig()
-            c.delegate = ec
-            c()
-            project.ext.envProperties = [:]
-            ec.props.each {k,v->project.ext.envProperties[k] = v}
+            project.ext.envProps = EnvironmentConfig.fromClosure(c, project).props
         }
     }
 }

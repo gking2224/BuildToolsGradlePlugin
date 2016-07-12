@@ -81,6 +81,10 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
                     t[k] = v()
                 }
             }
+            if (HasResolvableObjects.isAssignableFrom(t.getClass())) {
+                
+                ((HasResolvableObjects)t).resolveObjects()
+            }
         }
     }
 

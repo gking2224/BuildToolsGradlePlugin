@@ -8,12 +8,37 @@ class EnvironmentConfig {
     
     def props = [:]
     
-    def EnvironmentConfig() {
+    def project
+    
+    def EnvironmentConfig(def project) {
+        this.project = project
+//        def mc = new ExpandoMetaClass( EnvironmentConfig, false, true)
+//        mc.initialize()
+//        this.metaClass = mc
+    }
+
+    def propertyMissing(String name, def value ) {
+        props[name] = value
     }
 
     def methodMissing(String name, args) {
         assert args.length == 1 : "Environment config value for $name must be single item"
         def arg = args[0]
-        props[name] = arg
+        
+        if (Closure.isAssignableFrom(arg.getClass())) {
+            props[name] = EnvironmentConfig.fromClosure(arg, project).props
+        }
+        else {
+            props[name] = arg
+        }
+        
+    }
+    
+    static def fromClosure(Closure c, def p) {
+        EnvironmentConfig ec = new EnvironmentConfig(p)
+        c.delegate = ec
+        c.resolveStrategy = Closure.DELEGATE_FIRST
+        c()
+        ec
     }
 }
