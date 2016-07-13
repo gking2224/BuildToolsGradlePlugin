@@ -15,44 +15,45 @@ class PropertiesAggregator {
     def aggregate(Map o) {
         def l = logger
         def properties = [:]
-        logger.debug("Adding PropertiesAggregator properties:")
         o.each {k,v->
+            properties[k] = [:]
             if (v != null && Map.isAssignableFrom(v.getClass())){
-                populatePrefixedProperties(properties, k, v)
+                properties[k].putAll populatePrefixedProperties(properties, k, v)
             }
             else if (v != null && v.hasProperty("properties")) {
-                populatePrefixedProperties(properties, k, v.getProperties())
+                properties[k].putAll populatePrefixedProperties(properties, k, v.getProperties())
             }
             if (v != null && v.hasProperty("ext") && DefaultExtraPropertiesExtension.class.isAssignableFrom(v.ext.getClass())) {
-//                populatePrefixedProperties ext = (DefaultExtraPropertiesExtension)(v.ext)
-                populatePrefixedProperties(properties, k, v.ext.getProperties())
+                properties[k].putAll populatePrefixedProperties(properties, k, v.ext.getProperties())
             }
-        }
-        if (logger.debugEnabled) {
-            logger.debug("PropertiesAggregator created with: {$properties}")
         }
         properties
     }
     
     def populatePrefixedProperties(Map properties, def prefix, def m) {
+        def rv = [:]
         m.each {k,v->
-            if (properties[prefix] == null) properties[prefix] = [:]
-            if (v != null && Closure.isAssignableFrom(v.getClass())) v = CLOSURE
+            if (v == null) v = ""
             if (k == "properties" || k == "ext") v = "<removed $k>"
             if ([String,GString].any {it.isAssignableFrom(v.getClass())}) {
-                properties[prefix][k] = v
-                properties["$prefix.$k"] = v
-                
+                rv[k] = v
                 if (!properties.containsKey(k)) properties[k] = v
                 else if (properties[k] != v){
-//                    logger.warn("Got conflicted key: $k")
-                    properties[k] = CONFLICT
+                    rv[k] = CONFLICT
                 }
             }
-            else {
-//                logger.debug "not adding $k with value of type ${v.getClass()}"
+            else if (prefix.startsWith("envProps") && Closure.isAssignableFrom(v.getClass())) {
+                rv[k] = GroovyUtil.instance().resolveValue(v)
             }
+            else if (Map.isAssignableFrom(v.getClass())) {
+                rv[k] = populatePrefixedProperties(properties, "$prefix.$k", v)
+            }
+            else {
+                logger.debug "not adding $k with value of type ${v.getClass()}"
+            }
+            properties["$prefix.$k"] = rv[k]
         }
+        return rv
     }
 
 }

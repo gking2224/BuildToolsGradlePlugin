@@ -71,14 +71,16 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
         project.gradle.taskGraph.beforeTask {Task t->
             t.getProperties().findAll{e-> "ext" != e.key && "properties" != e.key && Closure.isAssignableFrom(e.value.getClass())}.each {e->
                 logger.info "Auto-resolving closure property ${e.key} on task $t.name"
-                t[e.key] = e.value()
+                def result = _resolveClosureValue(e.value)
+                t[e.key] = result
             }
             if (t != null && t.hasProperty("ext") && DefaultExtraPropertiesExtension.class.isAssignableFrom(t.ext.getClass())) {
                 t.ext.getProperties().findAll{k,v->
                     Closure.class.isAssignableFrom(v.getClass())
                 }.each {k,v->
                     logger.info "Auto-resolving closure property $k on task $t.name"
-                    t[k] = v()
+                    def result = _resolveClosureValue(v)
+                    t[k] = result
                 }
             }
             if (HasResolvableObjects.isAssignableFrom(t.getClass())) {
@@ -86,6 +88,11 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
                 ((HasResolvableObjects)t).resolveObjects()
             }
         }
+    }
+    
+    def _resolveClosureValue(def c) {
+        def v = c()
+        v
     }
 
 }

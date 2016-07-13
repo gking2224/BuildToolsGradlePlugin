@@ -11,13 +11,27 @@ class PropertiesAggregatorTest {
         def m = ["mapa":[a:"1", b:"2", c:"3"], "mapb":[a:"7", b:"99"]]
         
         def p = new PropertiesAggregator().aggregate(m)
-        println p.hasProperty("mapa.a")
         assertTrue(p.containsKey("mapa.a"))
         assertTrue(p.containsKey("mapa"))
         assertTrue(p.containsKey("c"))
         assertEquals("1", p["mapa.a"])
         assertEquals("1", p.mapa.a)
         assertEquals("3", p.c)
+     
+    }
+
+    @Test
+    public void test2() {
+        def m = ["mapa":[a:"1", b:"2", c:"3"], "mapb":[a:[x:"y",abc:[abd:"ghi"]]]]
+        
+        def p = new PropertiesAggregator().aggregate(m)
+        
+
+//        println p
+                
+        assertEquals "ghi", p.mapb.a.abc.abd
+        
+        assertEquals "ghi", p["mapb.a.abc.abd"]
      
     }
 

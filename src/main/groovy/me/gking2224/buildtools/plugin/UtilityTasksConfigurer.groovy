@@ -2,8 +2,9 @@ package me.gking2224.buildtools.plugin
 
 import groovy.text.StreamingTemplateEngine
 import groovy.text.Template
-import me.gking2224.buildtools.util.FileHelper;
+import me.gking2224.buildtools.util.FileHelper
 import me.gking2224.buildtools.util.FilePath
+import me.gking2224.buildtools.util.GroovyUtil
 import me.gking2224.buildtools.util.PropertiesAggregator
 import me.gking2224.buildtools.util.RandomString
 
@@ -19,7 +20,7 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
     }
     
     def configureProject() {
-        
+        GroovyUtil.instance(project)
         loggingFunctions()
         utilityFunctions()
         dryRun()
@@ -52,13 +53,7 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
             return ["true", "t", "", "yes", "y"].contains(v)
         }
         project.ext.resolveValue = {a ->
-            if (a == null) return null
-            else if (a instanceof Closure) {
-                a.delegate = project
-                def val = a()
-                return val
-            }
-            else return a
+            GroovyUtil.instance(project).resolveValue(a)
         }
         
         project.ext.readProps = {File f->
@@ -103,33 +98,35 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
             }
         }
         project.ext.filteredFile = {def f, def objects->
-            logger.debug("filteredFile: $f, $objects")
+            logger.debug("Creating filtered file from $f with template objects $objects")
             if (f == null) return null
             else if (Iterable.class.isAssignableFrom(f.class)) {
                 return f.collect {project.filteredFile(it, objects)}
             }
-            
-            def asString = [String,GString].any { it.isAssignableFrom(f.class) }
-            if (asString) {
-                f = new File(f)
+            else {
+                def asString = [String,GString].any { it.isAssignableFrom(f.class) }
+                if (asString) {
+                    f = new File(f)
+                }
+                objects["project"] = project
+                objects["envProps"] = project.envProps
+                
+                def dir = new File(project.fileNameFromParts(project.runDir, project.randomString(16)))
+                dir.mkdirs()
+                project.filteredFiles << dir
+                
+                File ff = new File(dir, f.name)
+                
+                def Template template = new StreamingTemplateEngine().createTemplate(new FileReader(f))
+                def binding = new PropertiesAggregator().aggregate(objects)
+                def fw = new FileWriter(ff)
+                fw.write(template.make(binding))
+                fw.close()
+                
+                logger.debug "Created filtered file: ${ff.absolutePath}"
+                
+                return (asString)?ff.absolutePath:ff
             }
-            objects["project"] = project
-            
-            def dir = new File(project.fileNameFromParts(project.runDir, project.randomString(16)))
-            dir.mkdirs()
-            project.filteredFiles << dir
-            
-            File ff = new File(dir, f.name)
-            
-            def Template template = new StreamingTemplateEngine().createTemplate(new FileReader(f))
-            def binding = new PropertiesAggregator().aggregate(objects)
-            def fw = new FileWriter(ff)
-            fw.write(template.make(binding))
-            fw.close()
-            
-            logger.info "Created filtered file: ${ff.absolutePath}"
-            
-            return (asString)?ff.absolutePath:ff
         }
     }
     

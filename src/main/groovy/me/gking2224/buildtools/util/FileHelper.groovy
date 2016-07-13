@@ -19,7 +19,6 @@ class FileHelper {
     }
     
     def fileCollection(def dir, def file) {
-        logger.debug("fileCollection $dir $file")
         if (file == null) return []
         else if (Iterable.class.isAssignableFrom(file.getClass())) {
             return file.collect {asFile(dir, it)}
@@ -27,15 +26,16 @@ class FileHelper {
         else return [asFile(dir, file)]
     }
     
+    def asFile(def file) {
+        asFile(null, file)
+    }
+    
     def asFile(def dir, def file) {
-        logger.debug("asFile $dir $file")
         if ([String,GString].any{it.isAssignableFrom(file.class)}) {
             def f = (dir == null)?new File(file):new File(dir, file)
-            logger.debug("String asFile: $dir $file :: $f.absolutePath")
             return f
         }
         else if (File.isAssignableFrom(file.class)) {
-            logger.debug("Ignoring dir $dir")
             return file
         }
         else if (Iterable.isAssignableFrom(file.class)){
@@ -65,12 +65,68 @@ class FileHelper {
     }
     
     def filesFromPattern(def dir, def pattern) {
-//        println pattern.class
-//        Pattern pp = Pattern.compile(pattern)
-        if ([String,GString].any {it.isAssignableFrom(dir.class)}) {
-            dir = new File(dir)
+        assert dir != null : "Null directory"
+        assert pattern != null && pattern != "" : "Null pattern"
+        
+        dir = asFile(dir)
+        
+        logger.debug("filesFromPattern: dir=$dir ; pattern=$pattern")
+        def rv = _filesFromPattern(dir, pattern, false)
+        if (logger.isDebugEnabled()) {
+            logger.debug "${rv.size()} matches:"
+            rv.each {
+                logger.debug("  ${it.absolutePath}")
+            }
+        }
+        rv
+    }
+    
+    def _filesFromPattern(def dir, def pattern, def recurse) {
+        
+        if (pattern.startsWith("/")) return _filesFromPattern(dir, pattern.substring(1), recurse)
+        def split = splitFilePattern(pattern)
+        def matchingDir = split[0]
+        def remainingPattern = pattern
+        
+        // recursive search on next element
+        if (matchingDir == "**")
+            return _filesFromPattern(dir, split[1], true)
+            
+        // matching directory, non-recursive search on next element
+        if (split[1] && dir.name ==~ matchingDir) {
+            return _filesFromPattern(dir, split[1], false)
         }
         
-        dir.listFiles().findAll{it.name ==~ pattern}
+        def rv = []
+        // find matching files
+        if (!split[1]) {
+            dir.listFiles().findAll{
+                it.name ==~ remainingPattern
+            }.each{m->
+                rv << m
+            }
+        }
+        dir.listFiles().findAll{
+            it.isDirectory() && (recurse || it.name ==~ matchingDir)
+        }.each{
+            _filesFromPattern(it, remainingPattern, recurse).each{m->
+                rv << m
+            }
+        }
+        rv
+    }
+    
+    /**
+     * Split a file pattern between initial directory and remaining pattern
+     * @param pattern
+     * @return
+     */
+    def splitFilePattern(def pattern) {
+        
+        def pp = Pattern.compile("([^/]*)/(.*)")
+        def mm = pp.matcher(pattern)
+        
+        if (mm.matches()) [mm.group(1), mm.group(2)]
+        else [pattern, null]
     }
 }

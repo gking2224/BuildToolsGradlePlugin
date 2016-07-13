@@ -23,5 +23,13 @@ class EnvironmentsHandler {
         if (sysEnv == env) {
             project.ext.envProps = EnvironmentConfig.fromClosure(c, project).props
         }
+        
+        project.afterEvaluate {
+//            project.envProps.each{k,v->
+//                if (v != null && Closure.isAssignableFrom(v.class)){
+//                    project.envProps[k] = v()
+//                } 
+//            }
+        }
     }
 }
