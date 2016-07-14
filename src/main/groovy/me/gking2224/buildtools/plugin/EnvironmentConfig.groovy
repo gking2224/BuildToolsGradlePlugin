@@ -1,24 +1,82 @@
 package me.gking2224.buildtools.plugin
 
-import org.gradle.api.internal.plugins.DefaultConvention
-import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.ExtensionContainer
+import me.gking2224.buildtools.util.GroovyUtil
+
+import org.gradle.api.Project
+import org.slf4j.LoggerFactory;
 
 class EnvironmentConfig {
     
+    def logger = LoggerFactory.getLogger(this.getClass())
     def props = [:]
     
     def project
+    def fallback
+    def configPath
     
-    def EnvironmentConfig(def project) {
+    def EnvironmentConfig(String configPath, Project project, EnvironmentConfig fallback) {
+        this.configPath = configPath
         this.project = project
-//        def mc = new ExpandoMetaClass( EnvironmentConfig, false, true)
-//        mc.initialize()
-//        this.metaClass = mc
+        this.fallback = fallback
+    }
+    
+    def EnvironmentConfig(String configPath, EnvironmentConfig fallback) {
+        this(configPath, null, fallback)
+    }
+    
+    def EnvironmentConfig(String configPath, Project project) {
+        this(configPath, project, null)
+    }
+    
+    def EnvironmentConfig(String configPath) {
+        this(configPath, null)
+    }
+    
+    def EnvironmentConfig() {
+        this("<root>")
     }
 
-    def propertyMissing(String name, def value ) {
+    def propertyMissing(String name, def value) {
         props[name] = value
+    }
+    
+    def propertyMissing(String name) {
+        logger.debug "<Start search property $configPath.$name>"
+        def rv = propertyValueOrFallback(name)
+        logger.debug "<End   search property $configPath.$name : $rv>"
+        rv
+    } 
+    
+    def propertyValueOrFallback(def name) {
+        
+        def rv = props[name]
+        if (!rv) {
+            if (fallback) {
+                logger.debug "Property $name NOT found in $configPath; looking in fallback"
+                rv = fallback[name]
+            }
+            else {
+                logger.debug "Property $name NOT found in $configPath, no fallback"
+            }
+        }
+        else {
+            logger.debug "<Start resolve $configPath.$name>"
+            rv = GroovyUtil.instance().resolveValue(rv)
+            logger.debug "<End resolve   $configPath.$name>"
+        }
+        if (rv && EnvironmentConfig.isAssignableFrom(rv.getClass()) && fallback) {
+            logger.debug "Checking if fallback should be retain for deeper property failures"
+            def fbValue = fallback[name]
+            if (fbValue && EnvironmentConfig.isAssignableFrom(fbValue.getClass())) {
+                logger.debug "Retaining fallback ${fbValue.configPath} for ${rv.configPath}"
+                rv.fallback = fbValue
+            }
+            else {
+                logger.debug "Retaining fallback ${this.fallback.configPath} for ${rv.configPath}"
+                rv.fallback = this.fallback // questionable
+            }
+        }
+        rv
     }
 
     def methodMissing(String name, args) {
@@ -26,19 +84,30 @@ class EnvironmentConfig {
         def arg = args[0]
         
         if (Closure.isAssignableFrom(arg.getClass())) {
-            props[name] = EnvironmentConfig.fromClosure(arg, project).props
+            props[name] = createSubConfigFromClosureWithPath(arg, "$configPath.$name")
         }
         else {
             props[name] = arg
         }
+        props[name]
         
     }
     
-    static def fromClosure(Closure c, def p) {
-        EnvironmentConfig ec = new EnvironmentConfig(p)
-        c.delegate = ec
-        c.resolveStrategy = Closure.DELEGATE_FIRST
-        c()
+    def createSubConfigFromClosureWithPath(def c, def subPath) {
+        EnvironmentConfig ec = new EnvironmentConfig(subPath, project)
+        GroovyUtil.instance().configureObjectFromClosure(ec, c)
         ec
+    }
+    
+//    static def fromClosure(String configPath, Closure c) {
+//        fromClosure(configPath, c, null)
+//    }
+//    
+//    static def fromClosure(String configPath, Closure c, def p) {
+//        
+//    }
+    
+    def String toString() {
+        "EnvironmentConfig $configPath"
     }
 }

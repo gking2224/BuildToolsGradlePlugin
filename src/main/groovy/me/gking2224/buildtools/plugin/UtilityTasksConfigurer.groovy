@@ -116,9 +116,8 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
                 project.filteredFiles << dir
                 
                 File ff = new File(dir, f.name)
-                
                 def Template template = new StreamingTemplateEngine().createTemplate(new FileReader(f))
-                def binding = new PropertiesAggregator().aggregate(objects)
+                def binding = objects//new PropertiesAggregator().aggregate(objects)
                 def fw = new FileWriter(ff)
                 fw.write(template.make(binding))
                 fw.close()

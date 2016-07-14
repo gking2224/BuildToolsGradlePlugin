@@ -35,7 +35,7 @@ class PropertiesAggregator {
         m.each {k,v->
             if (v == null) v = ""
             if (k == "properties" || k == "ext") v = "<removed $k>"
-            if ([String,GString].any {it.isAssignableFrom(v.getClass())}) {
+            if ([String,GString,Number].any {it.isAssignableFrom(v.getClass())}) {
                 rv[k] = v
                 if (!properties.containsKey(k)) properties[k] = v
                 else if (properties[k] != v){
@@ -46,7 +46,7 @@ class PropertiesAggregator {
                 rv[k] = GroovyUtil.instance().resolveValue(v)
             }
             else if (Map.isAssignableFrom(v.getClass())) {
-                rv[k] = populatePrefixedProperties(properties, "$prefix.$k", v)
+                rv[k] = populatePrefixedProperties(properties, "$prefix.$k", v.clone())
             }
             else {
                 logger.debug "not adding $k with value of type ${v.getClass()}"

@@ -22,27 +22,29 @@ class Copy extends DefaultTask implements HasResolvableObjects {
         if (_groups.isEmpty()) _groups << new CopyGroup(fromDir, pattern, toDir)
         
         _groups.each {cg ->
-        
             cg.toDir = FileHelper.instance().asFile(cg.toDir)
             cg.fromDir = FileHelper.instance().asFile(cg.fromDir)
-            assert cg.fromDir.exists()
             
-            if (!cg.toDir.exists()) cg.toDir.mkdirs()
-            def files = project.filesFromPattern(cg.fromDir, cg.pattern)
+            if (!cg.fromDir.exists()) logger.debug "$fromDir does not exists - nothing to do"
+            else {
             
-            files.each{File f->
-                def stub = f.parentFile.absolutePath.substring(cg.fromDir.absolutePath.length())
-                File to = FileHelper.instance().asFile(project.fileNameFromParts(cg.toDir, stub, f.name))
-                def ff = project.filteredFile(f, [task:this])
-                project.dryRunExecute("Not copying $f.absolutePath to $to.absolutePath", {
-                    if (!to.parentFile.exists()) to.parentFile.mkdirs()
-                    ff.withDataInputStream {dis->
-                        to.withDataOutputStream {dos->
-                            dos << dis
+                if (!cg.toDir.exists()) cg.toDir.mkdirs()
+                def files = project.filesFromPattern(cg.fromDir, cg.pattern)
+                
+                files.each{File f->
+                    def stub = f.parentFile.absolutePath.substring(cg.fromDir.absolutePath.length())
+                    File to = FileHelper.instance().asFile(project.fileNameFromParts(cg.toDir, stub, f.name))
+                    def ff = project.filteredFile(f, [task:this])
+                    project.dryRunExecute("Not copying $f.absolutePath to $to.absolutePath", {
+                        if (!to.parentFile.exists()) to.parentFile.mkdirs()
+                        ff.withDataInputStream {dis->
+                            to.withDataOutputStream {dos->
+                                dos << dis
+                            }
                         }
-                    }
-                    logger.info "Copied $f.absolutePath to $to.absolutePath"
-                })
+                        logger.info "Copied $f.absolutePath to $to.absolutePath"
+                    })
+                }
             }
         }
     }
@@ -59,7 +61,7 @@ class Copy extends DefaultTask implements HasResolvableObjects {
 
     @Override
     public void resolveObjects() {
-        _groups = _groups.collect{it.resolveValues(project)}
+        _groups = _groups.each{it.resolveValues(project)}
     }
     
     class CopyGroup {
@@ -79,6 +81,10 @@ class Copy extends DefaultTask implements HasResolvableObjects {
             fromDir = project.resolveValue(fromDir)
             pattern = project.resolveValue(pattern)
             toDir = project.resolveValue(toDir)
+        }
+        
+        String toString() {
+            "CopyGroup $fromDir $pattern $toDir"
         }
     }
 }

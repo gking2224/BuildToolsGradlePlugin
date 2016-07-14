@@ -32,6 +32,8 @@ class PropertiesAggregatorTest {
         assertEquals "ghi", p.mapb.a.abc.abd
         
         assertEquals "ghi", p["mapb.a.abc.abd"]
+        
+        assertEquals "ghi", p.abd
      
     }
 
