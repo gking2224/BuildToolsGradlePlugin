@@ -26,9 +26,6 @@ class PropertiesAggregatorTest {
         
         def p = new PropertiesAggregator().aggregate(m)
         
-
-//        println p
-                
         assertEquals "ghi", p.mapb.a.abc.abd
         
         assertEquals "ghi", p["mapb.a.abc.abd"]
