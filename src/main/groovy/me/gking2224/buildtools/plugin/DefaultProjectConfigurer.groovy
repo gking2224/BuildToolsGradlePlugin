@@ -84,17 +84,17 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
                 }
             }
             if (HasResolvableObjects.class.isAssignableFrom(t.getClass())) {
-                logger.info("Calling resolveObjects() on $t")
+                logger.trace("Calling resolveObjects() on $t")
                 ((HasResolvableObjects)t).resolveObjects()
             }
             else {
                 try {
                     // this sometimes works -- weird!!
                     t.resolveObjects()
-                    logger.info("Successfully called resolveObjects() on $t despite it not being assignable from HasResolvableObjects class!!")
+                    logger.trace("Successfully called resolveObjects() on $t despite it not being assignable from HasResolvableObjects class!!")
                 } catch (Throwable tt) {
                     logger.warn(tt.getMessage())
-                    logger.info("task $t (${t.getClass()}) does not implement HasResolvableObjects")
+                    logger.trace("task $t (${t.getClass()}) does not implement HasResolvableObjects")
                 }
             }
         }
