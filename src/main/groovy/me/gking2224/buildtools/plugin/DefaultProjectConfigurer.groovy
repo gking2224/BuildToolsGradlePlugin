@@ -38,7 +38,7 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
             classpath {
                 defaultOutputDir = project.file('build/classes')
                 containers = [
-                    'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8',
+//                    'org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8',
                     'org.springsource.ide.eclipse.gradle.classpathcontainer'  // Gradle IDE classpath container
                 ]
                 file {
@@ -70,7 +70,7 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
     def resolveValues() {
         project.gradle.taskGraph.beforeTask {Task t->
             t.getProperties().findAll{e-> "ext" != e.key && "properties" != e.key && Closure.isAssignableFrom(e.value.getClass())}.each {e->
-                logger.info "Auto-resolving closure property ${e.key} on task $t.name"
+                logger.debug "Auto-resolving closure property ${e.key} on task $t.name"
                 def result = _resolveClosureValue(e.value)
                 t[e.key] = result
             }
@@ -78,7 +78,7 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
                 t.ext.getProperties().findAll{k,v->
                     Closure.class.isAssignableFrom(v.getClass())
                 }.each {k,v->
-                    logger.info "Auto-resolving closure property $k on task $t.name"
+                    logger.debug "Auto-resolving closure property $k on task $t.name"
                     def result = _resolveClosureValue(v)
                     t[k] = result
                 }
@@ -91,9 +91,9 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
                 try {
                     // this sometimes works -- weird!!
                     t.resolveObjects()
-                    logger.trace("Successfully called resolveObjects() on $t despite it not being assignable from HasResolvableObjects class!!")
+                    logger.debug("Successfully called resolveObjects() on $t despite it not being assignable from HasResolvableObjects class!!")
                 } catch (Throwable tt) {
-                    logger.warn(tt.getMessage())
+                    logger.trace(tt.getMessage())
                     logger.trace("task $t (${t.getClass()}) does not implement HasResolvableObjects")
                 }
             }
