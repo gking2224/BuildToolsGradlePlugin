@@ -11,7 +11,6 @@ class EnvironmentsHandler {
     def logger = LoggerFactory.getLogger(EnvironmentsHandler.class)
 
     static final KEY = "environments"
-    static final DEFAULT_ENV = "local"
     
     def Project project
     
@@ -20,7 +19,8 @@ class EnvironmentsHandler {
     public EnvironmentsHandler(Project project) {
         this.project = project
         all = new NonNullEnvironmentConfig("all", project, "<<unconfigured>>")
-        if (!project.hasProperty("env")) project.ext.env = DEFAULT_ENV
+        project.ext.envProps = {}
+        
     }
     
     def env(String env, Closure c) {
