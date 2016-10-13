@@ -7,6 +7,8 @@ import me.gking2224.buildtools.util.Version
 import org.eclipse.jgit.api.Status
 import org.gradle.api.Project
 
+import org.gradle.api.tasks.bundling.Jar
+
 class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
     
     def ReleaseTasksConfigurer(Project p) {
@@ -19,6 +21,7 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         createForceVersionTask()
         createAssertNoChangesTask()
         createReleaseTasks()
+        clientLibs()
     }
     
     def createAssertNoChangesTask() {
@@ -152,5 +155,50 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         props.version = v2.rawVersion
         project.storeProps(props, f)
         project.version = v2.rawVersion
+    }
+    
+    def clientLibs() {
+        project.configurations {
+            clientlib
+        }
+        
+        project.sourceSets {
+            clientlib {
+                java {
+                    srcDir project.file("src/main/java")
+                    include '**/client/**'
+                    compileClasspath = project.configurations.clientlib
+                }
+            }
+        }
+        
+        project.task("clientlib", type: Jar) {
+            baseName = project.name+'-client'
+            classifier = 'client'
+            from project.sourceSets.clientlib.output
+        }
+        
+        
+        project.artifacts {
+            archives project.tasks.clientlib
+        }
+        
+        project.install {
+            repositories {
+                mavenDeployer {
+                    def clientPom = addFilter('client') {artifact, file ->
+                        artifact.extraAttributes.classifier == 'client'
+                    }
+                    clientPom.whenConfigured {pom->
+                        def deps = []
+                        project.configurations.clientlib.dependencies.each {deps << it.name}
+                        pom.setDependencies(pom.getDependencies().findAll {d->
+                            deps.contains(d.artifactId)
+                        })
+                    }
+                }
+            }
+        }
+        
     }
 }
