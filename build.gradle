@@ -3,8 +3,11 @@ buildscript {
         mavenLocal()
         mavenCentral()
         jcenter()
+        maven { url= "http://nexus.gking2224.me/nexus/content/repositories/releases" }
+        maven { url= "http://nexus.gking2224.me/nexus/content/repositories/snapshots" }
     }
     dependencies {
+        classpath "me.gking2224:gk-utils:0.0.4"
     }
 }
 
@@ -28,7 +31,21 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    maven { url= "http://nexus.gking2224.me/nexus/content/repositories/releases" }
+    maven { url= "http://nexus.gking2224.me/nexus/content/repositories/snapshots" }
+}
+
+
+project.uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "http://nexus.gking2224.me/nexus/content/repositories/releases/") {
+                authentication(userName: "build", password: "n3xu5bu1ld")
+            }
+        }
+    }
 }
 
 // versions
@@ -74,6 +91,7 @@ dependencies {
     compile "org.eclipse.jgit:org.eclipse.jgit:$jgitVersion"
     compile "org.eclipse.jgit:org.eclipse.jgit.junit:$jgitVersion"
     compile "com.jcraft:jsch:0.1.51"
+    compile "me.gking2224:gk-utils:0.0.4"
     compile "org.codehaus.groovy:groovy-templates:2.4.7"
 }
 
