@@ -56,7 +56,7 @@ class EnvironmentsHandler {
     def getPropsDir() {
         def dir = System.getenv("PROPS_DIR")
         if (dir == null) {
-            dir = System.getProperty("user.home")+File.pathSeparator+"properties"
+            dir = System.getProperty("user.home")+File.separator+"properties"
         }
         File rv = new File(dir)
         assert rv.exists() : dir + " does not exist"
