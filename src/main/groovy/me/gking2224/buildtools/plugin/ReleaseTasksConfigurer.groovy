@@ -78,11 +78,11 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         project.task("release", group:BuildToolsGradlePlugin.GROUP)
         
         if (!previousCommitIsRelease()) {
-            project.tasks.release.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives'])
+            project.tasks.release.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion'])
         }
         
         project.task("forceRelease", group:BuildToolsGradlePlugin.GROUP)
-        project.tasks.forceRelease.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives'])
+        project.tasks.forceRelease.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion'])
         
         project.task("removeSnapshot", group: BuildToolsGradlePlugin.GROUP) << {
             removeSnapshot()
