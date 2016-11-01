@@ -10,6 +10,9 @@ import org.gradle.api.Project
 import org.gradle.api.tasks.bundling.Jar
 
 class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
+
+    static final String RELEASE_COMMIT_MESSAGE = "RELEASE: removing snapshot"
+    static final String BUMP_VERSION_COMMIT_MESSAGE = "RELEASE: increasing version"
     
     def ReleaseTasksConfigurer(Project p) {
         super(p)
@@ -20,7 +23,11 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         createBumpVersionTask()
         createForceVersionTask()
         createAssertNoChangesTask()
-        createReleaseTasks()
+        
+        if (project.hasProperty("publish.repository.release.url") && project.hasProperty("publish.repository.snapshot.url")) {
+            createReleaseTasks()
+        }
+        
         clientLibs()
     }
     
@@ -38,6 +45,11 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         assertChangesetEmpty("remote changes", s.getAdded())
     }
     
+    def previousCommitIsRelease() {
+        String msg = GitHelper.getInstance(project).getLastCommitMessage(project.rootDir)
+        return RELEASE_COMMIT_MESSAGE.equals(msg) || BUMP_VERSION_COMMIT_MESSAGE.equals(msg)
+    }
+    
     def assertChangesetEmpty(def type, def paths) {
         
         if (!paths.isEmpty()) {
@@ -49,29 +61,37 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
     
     def createReleaseTasks() {
         project.gradle.taskGraph.whenReady {taskGraph ->
-            def url = (taskGraph.hasTask(project.tasks.release))?"artifactory.release.url":"artifactory.snapshot.url"
+            def url = (taskGraph.hasTask(project.tasks.release))?"publish.repository.release.url":"publish.repository.snapshot.url"
             project.uploadArchives {
                 repositories {
                     mavenDeployer {
                         repository(url: project[url]) {
-                            authentication(userName: project["artifactory.username"], password: project["artifactory.password"])
+                            authentication(userName: project["publish.repository.username"], password: project["publish.repository.password"])
                         }
                     }
                 }
             }
         }
         
-        project.task("release", group:BuildToolsGradlePlugin.GROUP,
-            dependsOn:[
-                'check', 'assertNoChanges', 'removeSnapshot', 'uploadArchives'])
+        project.task("release", group:BuildToolsGradlePlugin.GROUP)
         
-        project.task("removeSnapshot", type:GitCommit, group:BuildToolsGradlePlugin.GROUP) {
-            pattern = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
-            message = "RELEASE: removing snapshot"
+        if (!previousCommitIsRelease()) {
+            project.tasks.release.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives'])
         }
-        project.tasks.removeSnapshot.doFirst {
+        
+        project.task("forceRelease", group:BuildToolsGradlePlugin.GROUP)
+        project.tasks.forceRelease.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives'])
+        
+        project.task("removeSnapshot", group: BuildToolsGradlePlugin.GROUP) << {
             removeSnapshot()
         }
+        
+        project.task("commitReleaseVersion", type:GitCommit, group:BuildToolsGradlePlugin.GROUP) {
+            pattern = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
+            message = RELEASE_COMMIT_MESSAGE
+        }
+        project.tasks.commitReleaseVersion.dependsOn 'removeSnapshot'
+        
         project.tasks.assertNoChanges.mustRunAfter "check"
         project.tasks.removeSnapshot.mustRunAfter "assertNoChanges"
         project.tasks.uploadArchives.mustRunAfter "removeSnapshot"
@@ -87,17 +107,18 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
     def createBumpVersionTask() {
         
         project.task("postRelease", group:BuildToolsGradlePlugin.GROUP,
-            dependsOn:[
-                'bumpVersion', 'uploadArchives'])
-        project.tasks.uploadArchives.mustRunAfter "bumpVersion"
+            dependsOn: ['commitNewVersion', 'uploadArchives'])
+        project.tasks.uploadArchives.mustRunAfter "commitNewVersion"
         
-        project.task("bumpVersion", group:BuildToolsGradlePlugin.GROUP, type:GitCommit) {
+        project.task("commitNewVersion", group:BuildToolsGradlePlugin.GROUP, type:GitCommit) {
             pattern = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
-            message = "RELEASE: increasing version"
+            message = BUMP_VERSION_COMMIT_MESSAGE
         }
-        project.tasks.bumpVersion.doFirst {
+        
+        project.task("bumpVersion", group:BuildToolsGradlePlugin.GROUP) << {
             bumpVersion()
         }
+        project.tasks.commitNewVersion.dependsOn 'bumpVersion'
     }
     
     def bumpVersion() {

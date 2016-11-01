@@ -66,6 +66,12 @@ class GitHelper {
         Git git = Git.open(f)
         git.status().call()
     }
+    
+    def getLastCommitMessage(File f) {
+        Git git = Git.open(f)
+        RevCommit rc = git.log().setMaxCount(1).call().iterator().next()
+        return rc.getShortMessage()
+    }
 
     def commitFile(File f, String pattern, String message) {
         println "Committing $pattern from repository ${f.absolutePath}"
