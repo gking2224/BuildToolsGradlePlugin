@@ -95,8 +95,8 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         project.tasks.commitReleaseVersion.dependsOn 'removeSnapshot'
         
         project.tasks.assertNoChanges.mustRunAfter "check"
-        project.tasks.removeSnapshot.mustRunAfter "assertNoChanges"
-        project.tasks.uploadArchives.mustRunAfter "removeSnapshot"
+        project.tasks.commitReleaseVersion.mustRunAfter "assertNoChanges"
+        project.tasks.uploadArchives.mustRunAfter "commitReleaseVersion"
         project.tasks.bumpVersion.mustRunAfter "uploadArchives"
     }
     
@@ -113,15 +113,16 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
 //            dependsOn: ['commitNewVersion', 'uploadArchives'])
 //        project.tasks.uploadArchives.mustRunAfter "commitNewVersion"
         
+        project.task("writeBumpedVersion", group:BuildToolsGradlePlugin.GROUP) << {
+            bumpVersion()
+        }
         project.task("commitBumpedVersion", group:BuildToolsGradlePlugin.GROUP, type:GitCommit) {
             pattern = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
             message = BUMP_VERSION_COMMIT_MESSAGE
         }
+        project.tasks.commitBumpedVersion.dependsOn 'writeBumpedVersion'
         
-        project.task("bumpVersion", group:BuildToolsGradlePlugin.GROUP) << {
-            bumpVersion()
-        }
-        project.tasks.commitBumpedVersion.dependsOn 'bumpVersion'
+        project.task("bumpVersion", group:BuildToolsGradlePlugin.GROUP, dependsOn: ['commitBumpedVersion'])
     }
     
     def bumpVersion() {
