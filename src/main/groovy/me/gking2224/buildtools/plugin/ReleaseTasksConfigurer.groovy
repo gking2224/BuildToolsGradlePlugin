@@ -61,7 +61,9 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
     
     def createReleaseTasks() {
         project.gradle.taskGraph.whenReady {taskGraph ->
-            def url = (taskGraph.hasTask(project.tasks.release))?"publish.repository.release.url":"publish.repository.snapshot.url"
+            def url = (taskGraph.hasTask(project.tasks.release) || taskGraph.hasTask(project.tasks.forceRelease)) ?
+                "publish.repository.release.url" :
+                "publish.repository.snapshot.url"
             project.uploadArchives {
                 repositories {
                     mavenDeployer {
