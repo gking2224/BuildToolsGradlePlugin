@@ -24,6 +24,7 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         createForceVersionTask()
         createAssertNoChangesTask()
         
+        project.ext.preReleaseVersion = project.version
         if (project.hasProperty("publish.repository.release.url") && project.hasProperty("publish.repository.snapshot.url")) {
             createReleaseTasks()
         }
@@ -60,10 +61,11 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
     }
     
     def createReleaseTasks() {
+        def tasks = project.gradle.startParameter.getTaskNames()
+        project.ext.isRelease = tasks.contains("release") ||tasks.contains("forceRelease")
+        
         project.gradle.taskGraph.whenReady {taskGraph ->
-            def url = (taskGraph.hasTask(project.tasks.release) || taskGraph.hasTask(project.tasks.forceRelease)) ?
-                "publish.repository.release.url" :
-                "publish.repository.snapshot.url"
+            def url = project.isRelease ? "publish.repository.release.url" : "publish.repository.snapshot.url"
             project.uploadArchives {
                 repositories {
                     mavenDeployer {
