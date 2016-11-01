@@ -20,27 +20,6 @@ class BuildToolsGradlePluginTest {
         project.ext["buildtools.environment"] = "test"
         
     }
-    @Test
-    public void testTaskDefined() {
-        
-        assertTrue(project.tasks.release != null)
-    }
-    
-    @Test
-    public void testEnvironmentsConfig() {
-        
-        project.environments {
-            env("test") {
-                url = "http://testenv/"
-            }
-            env("prod") {
-                url = "http://prod/"
-            }
-        }
-        assert project.hasProperty("environment")
-        assert project.environment.url == "http://testenv/"
-        assert project.environment instanceof EnvironmentConfig
-    }
     
     @Test
     public void resolveValue() {
