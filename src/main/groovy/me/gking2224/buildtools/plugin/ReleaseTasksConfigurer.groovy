@@ -76,13 +76,14 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         }
         
         project.task("release", group:BuildToolsGradlePlugin.GROUP)
+        project.task("postReleaseHook", group:BuildToolsGradlePlugin.GROUP)
         
         if (!previousCommitIsRelease()) {
-            project.tasks.release.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion'])
+            project.tasks.release.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion', 'postReleaseHook'])
         }
         
         project.task("forceRelease", group:BuildToolsGradlePlugin.GROUP)
-        project.tasks.forceRelease.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion'])
+        project.tasks.forceRelease.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion', 'postReleaseHook'])
         
         project.task("removeSnapshot", group: BuildToolsGradlePlugin.GROUP) << {
             removeSnapshot()
@@ -97,7 +98,8 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         project.tasks.assertNoChanges.mustRunAfter "check"
         project.tasks.commitReleaseVersion.mustRunAfter "assertNoChanges"
         project.tasks.uploadArchives.mustRunAfter "commitReleaseVersion"
-        project.tasks.bumpVersion.mustRunAfter "uploadArchives"
+        project.tasks.postReleaseHook.mustRunAfter "uploadArchives"
+        project.tasks.bumpVersion.mustRunAfter "postReleaseHook"
     }
     
     def commitVersionFile() {
