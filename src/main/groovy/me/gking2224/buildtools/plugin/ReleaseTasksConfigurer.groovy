@@ -62,7 +62,7 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
     
     def createReleaseTasks() {
         def tasks = project.gradle.startParameter.getTaskNames()
-        project.ext.isRelease = tasks.contains("release") ||tasks.contains("forceRelease")
+        project.ext.isRelease = tasks.contains("release")
         
         project.gradle.taskGraph.whenReady {taskGraph ->
             def url = project.isRelease ? "publish.repository.release.url" : "publish.repository.snapshot.url"
@@ -80,12 +80,9 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         project.task("release", group:BuildToolsGradlePlugin.GROUP)
         project.task("postReleaseHook", group:BuildToolsGradlePlugin.GROUP)
         
-        if (!previousCommitIsRelease()) {
+        if (!previousCommitIsRelease() || project.booleanProperty("forceRelease")) {
             project.tasks.release.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion', 'postReleaseHook'])
         }
-        
-        project.task("forceRelease", group:BuildToolsGradlePlugin.GROUP)
-        project.tasks.forceRelease.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion', 'postReleaseHook'])
         
         project.task("removeSnapshot", group: BuildToolsGradlePlugin.GROUP) << {
             removeSnapshot()
