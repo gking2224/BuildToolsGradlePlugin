@@ -135,18 +135,18 @@ class UtilityTasksConfigurer extends AbstractProjectConfigurer {
         }
         
         project.ext.notRunning = {m ->
-            project.info "DryRun - not running [{$m}]"
         }
         
         project.ext.dryRunExecute = {String message, Closure... c->
             assert (c.length == 1|| c.length == 2) : "Need one or two closure to be provided"
             if (project.isDryRun()) {
-                project.notRunning(message)
+                project.info "DryRun - not running [{$message}]"
                 if (c.length == 2) {
                     c[1]()
                 } 
             }
             else {
+                project.info "Running: [{$message}]"
                 c[0]()
             }
         }

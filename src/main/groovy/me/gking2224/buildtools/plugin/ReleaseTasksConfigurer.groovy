@@ -110,10 +110,6 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
     
     def createBumpVersionTask() {
         
-//        project.task("postRelease", group:BuildToolsGradlePlugin.GROUP,
-//            dependsOn: ['commitNewVersion', 'uploadArchives'])
-//        project.tasks.uploadArchives.mustRunAfter "commitNewVersion"
-        
         project.task("writeBumpedVersion", group:BuildToolsGradlePlugin.GROUP) << {
             bumpVersion()
         }
