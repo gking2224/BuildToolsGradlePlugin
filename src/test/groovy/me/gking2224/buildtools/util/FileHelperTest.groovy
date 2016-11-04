@@ -73,7 +73,7 @@ class FileHelperTest {
         assertEquals([], fh.fileCollection("/tmp", []))
     }
     
-    @Test
+//    @Test
     public void filesFromPattern() {
         assertEquals([f2, file], fh.filesFromPattern(new File("/tmp/"), ".*delete.*"))
         assertEquals([f2, file], fh.filesFromPattern("/tmp/", ".*delete.*"))
