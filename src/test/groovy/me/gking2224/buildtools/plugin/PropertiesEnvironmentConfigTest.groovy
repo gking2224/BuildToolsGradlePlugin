@@ -31,4 +31,33 @@ class PropertiesEnvironmentConfigTest {
         
         assertEquals("Hello, my name is Donald", pec.salutation)
     }
+    @Test
+    public void testMultiple() {
+        
+        Properties p = new Properties()
+        p.put("greeting", "\${myvalue}")
+        p.put("myvalue", "\${hello}, \${world}")
+        p.put("hello", "Hello")
+        p.put("world", "World")
+        
+        def plist = []
+        plist << p
+        PropertiesEnvironmentConfig pec = new PropertiesEnvironmentConfig("unit", project, plist)
+        
+        assertEquals("Hello, World", pec.greeting)
+    }
+    @Test
+    public void testDefault() {
+        
+        Properties p = new Properties()
+        p.put("greeting", "\${myvalue}")
+        p.put("myvalue", "\${hello:Hello}, \${world}")
+        p.put("world", "World")
+        
+        def plist = []
+        plist << p
+        PropertiesEnvironmentConfig pec = new PropertiesEnvironmentConfig("unit", project, plist)
+        
+        assertEquals("Hello, World", pec.greeting)
+    }
 }

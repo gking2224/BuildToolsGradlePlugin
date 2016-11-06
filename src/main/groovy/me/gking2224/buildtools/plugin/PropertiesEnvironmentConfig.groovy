@@ -59,15 +59,38 @@ class PropertiesEnvironmentConfig {
     }
     
     def resolveNestedProperties(String value) {
-        int idx = value.indexOf(PLACEHOLDER_START)
+        return resolveNestedProperties(value, 0);
+    }
+    
+    def resolveNestedProperties(String value, int startFrom) {
+        int idx = value.indexOf(PLACEHOLDER_START, startFrom)
         if (idx == -1) return value
-        int matching = value.lastIndexOf(PLACEHOLDER_END)
+        int matching = value.indexOf(PLACEHOLDER_END, idx)
         
         String placeholder = value.substring(idx, matching+1)
-        String propName = placeholder.substring(2, placeholder.length()-1)
+        String propName = getPropName(placeholder)
+        String defaultValue = getDefaultValue(placeholder)
         
         String replacedValue = resolveValue(propName)
-        if (replacedValue == null) throw new IllegalArgumentException("Could not resolve property $value")
-        return value.replace(placeholder, replacedValue)
+        if (replacedValue == null) {
+            if (defaultValue != null) replacedValue = defaultValue
+            else throw new IllegalArgumentException("Could not resolve property $value")
+        }
+        def updated = value.replace(placeholder, replacedValue)
+        return resolveNestedProperties(updated, idx + replacedValue.length())
+    }
+    
+    def getPropName(String value) {
+        def idx = value.indexOf(":")
+        if (idx == -1)
+            return value.substring(2, value.length()-1)
+        else return value.substring(2, idx)
+    }
+    
+    def getDefaultValue(String value) {
+        def idx = value.indexOf(":")
+        if (idx == -1)
+            return null
+        else return value.substring(idx+1, value.length()-1)
     }
 }
