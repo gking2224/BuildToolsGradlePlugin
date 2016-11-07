@@ -23,6 +23,7 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         createBumpVersionTask()
         createForceVersionTask()
         createAssertNoChangesTask()
+        createToSnapshotTask()
         
         project.ext.preReleaseVersion = project.version
         if (project.hasProperty("publish.repository.release.url") && project.hasProperty("publish.repository.snapshot.url")) {
@@ -113,13 +114,13 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         project.task("writeBumpedVersion", group:BuildToolsGradlePlugin.GROUP) << {
             bumpVersion()
         }
-        project.task("commitBumpedVersion", group:BuildToolsGradlePlugin.GROUP, type:GitCommit) {
+        project.task("commitBumpedProperties", type:GitCommit) {
             pattern = BuildToolsGradlePlugin.GRADLE_PROPERTIES_FILE
             message = BUMP_VERSION_COMMIT_MESSAGE
         }
-        project.tasks.commitBumpedVersion.dependsOn 'writeBumpedVersion'
+        project.tasks.commitBumpedProperties.mustRunAfter 'writeBumpedVersion'
         
-        project.task("bumpVersion", group:BuildToolsGradlePlugin.GROUP, dependsOn: ['commitBumpedVersion'])
+        project.task("bumpVersion", group:BuildToolsGradlePlugin.GROUP, dependsOn: ['writeBumpedVersion', 'commitBumpedProperties'])
     }
     
     def bumpVersion() {
@@ -139,6 +140,15 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         props.version = v2.rawVersion
         project.storeProps(props, f)
         project.version = v2.rawVersion
+    }
+    
+    def createToSnapshotTask() {
+        
+        project.task("bumpIfNotSnapshot") << {
+            if (!project.version.contains("-SNAPSHOT")) bumpVersion()
+        }
+        project.tasks.commitBumpedProperties.mustRunAfter 'bumpIfNotSnapshot'
+        project.task("toSnapshot", group:BuildToolsGradlePlugin.GROUP, dependsOn: ['bumpIfNotSnapshot', 'commitBumpedProperties'])
     }
     
     def createForceVersionTask() {
