@@ -81,9 +81,7 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         project.task("release", group:BuildToolsGradlePlugin.GROUP)
         project.task("postReleaseHook", group:BuildToolsGradlePlugin.GROUP)
         
-        if (!previousCommitIsRelease() || project.booleanProperty("forceRelease")) {
-            project.tasks.release.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion', 'postReleaseHook'])
-        }
+        project.tasks.release.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion', 'postReleaseHook'])
         
         project.task("removeSnapshot", group: BuildToolsGradlePlugin.GROUP) << {
             removeSnapshot()
@@ -146,6 +144,7 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         
         project.task("bumpIfNotSnapshot") << {
             if (!project.version.contains("-SNAPSHOT")) bumpVersion()
+            else logger.info("bumpIfNotSnapshot: Nothing to do")
         }
         project.tasks.commitBumpedProperties.mustRunAfter 'bumpIfNotSnapshot'
         project.task("toSnapshot", group:BuildToolsGradlePlugin.GROUP, dependsOn: ['bumpIfNotSnapshot', 'commitBumpedProperties'])
