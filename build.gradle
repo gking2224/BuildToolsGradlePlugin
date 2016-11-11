@@ -54,9 +54,9 @@ repositories {
 project.uploadArchives {
     repositories {
         mavenDeployer {
-            def repo = (project.version.contains("SNAPSHOT")) ? publish.repository.snapshot.url : publish.repository.release.url
+            def repo = (project.version.contains("SNAPSHOT")) ? project["publish.repository.snapshot.url"] : project["publish.repository.release.url"]
             repository(url: repo) {
-                authentication(userName: publish.repository.username, password: publish.repository.password)
+                authentication(userName: project["publish.repository.username"], password: project["publish.repository.password"])
             }
         }
     }
