@@ -18,6 +18,19 @@ plugins {
 apply plugin: 'eclipse'
 apply plugin: 'maven'
 
+
+// read secret properties into project
+File secretPropsFile = new File("secret.properties")
+if (secretPropsFile.exists()) {
+    Properties secretProps = new Properties()
+    secretPropsFile.withInputStream {is->
+        secretProps.load(is)
+    }
+    secretProps.each {k,v ->
+        project.ext[k] = v
+    }
+}
+
 jar {
     
 }
@@ -41,8 +54,9 @@ repositories {
 project.uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "http://nexus.gking2224.me/nexus/content/repositories/releases/") {
-                authentication(userName: "build", password: "n3xu5bu1ld")
+            def repo = (project.version.contains("SNAPSHOT")) ? publish.repository.snapshot.url : publish.repository.release.url
+            repository(url: repo) {
+                authentication(userName: publish.repository.username, password: publish.repository.password)
             }
         }
     }
@@ -59,7 +73,7 @@ install {
     repositories {
         mavenDeployer {
             repository(
-            	url: "file://localhost/Users/gk/.m2/repository/")
+            	url: project.localRepoUrl)
         }
     }
 }
