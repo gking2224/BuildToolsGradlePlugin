@@ -71,9 +71,11 @@ ext {
 
 install {
     repositories {
-        mavenDeployer {
-            repository(
-            	url: project.localRepoUrl)
+        if (project.hasProperty("localRepoUrl")) {
+            mavenDeployer {
+                repository(
+                	url: project.localRepoUrl)
+            }
         }
     }
 }
