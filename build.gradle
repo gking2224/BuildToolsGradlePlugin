@@ -20,13 +20,14 @@ apply plugin: 'maven'
 
 
 // read secret properties into project
-File secretPropsFile = new File("secret.properties")
+File secretPropsFile = new File(project.projectDir, "secret.properties")
 if (secretPropsFile.exists()) {
     Properties secretProps = new Properties()
     secretPropsFile.withInputStream {is->
         secretProps.load(is)
     }
     secretProps.each {k,v ->
+        println "$k=$v"
         project.ext[k] = v
     }
 }
