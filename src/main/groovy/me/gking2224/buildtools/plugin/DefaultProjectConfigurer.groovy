@@ -13,7 +13,7 @@ class DefaultProjectConfigurer extends AbstractProjectConfigurer {
     
     def configureProject() {
         
-        eclipse()
+        if (project.featureEnabled("eclipse")) eclipse()
         
         runId()
         

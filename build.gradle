@@ -27,7 +27,6 @@ if (secretPropsFile.exists()) {
         secretProps.load(is)
     }
     secretProps.each {k,v ->
-        println "$k=$v"
         project.ext[k] = v
     }
 }

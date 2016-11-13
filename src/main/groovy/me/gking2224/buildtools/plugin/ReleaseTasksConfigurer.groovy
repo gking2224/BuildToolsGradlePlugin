@@ -65,23 +65,35 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
         def tasks = project.gradle.startParameter.getTaskNames()
         project.ext.isRelease = tasks.contains("release")
         
-        project.gradle.taskGraph.whenReady {taskGraph ->
-            def url = project.isRelease ? "publish.repository.release.url" : "publish.repository.snapshot.url"
-            project.uploadArchives {
-                repositories {
-                    mavenDeployer {
-                        repository(url: project[url]) {
-                            authentication(userName: project["publish.repository.username"], password: project["publish.repository.password"])
+        if (project.featureEnabled("maven")) {
+            project.gradle.taskGraph.whenReady {taskGraph ->
+                def url = project.isRelease ? "publish.repository.release.url" : "publish.repository.snapshot.url"
+                project.uploadArchives {
+                    repositories {
+                        mavenDeployer {
+                            repository(url: project[url]) {
+                                authentication(userName: project["publish.repository.username"], password: project["publish.repository.password"])
+                            }
                         }
                     }
                 }
+            }
+        }
+        else {
+            project.task("uploadArchives") << {
+                project.debug("Not doing anything as maven feature disabled")
+            }
+        }
+        if (!project.pluginManager.hasPlugin("java")) {
+            project.task("check") << {
+                project.debug("Not doing anything as java feature disabled")
             }
         }
         
         project.task("release", group:BuildToolsGradlePlugin.GROUP)
         project.task("postReleaseHook", group:BuildToolsGradlePlugin.GROUP)
         
-        project.tasks.release.dependsOn(['check', 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion', 'postReleaseHook'])
+        project.tasks.release.dependsOn([project.check, 'assertNoChanges', 'commitReleaseVersion', 'uploadArchives', 'bumpVersion', 'postReleaseHook'])
         
         project.task("removeSnapshot", group: BuildToolsGradlePlugin.GROUP) << {
             removeSnapshot()
@@ -193,39 +205,42 @@ class ReleaseTasksConfigurer extends AbstractProjectConfigurer {
             clientlib
         }
         
-        project.sourceSets {
-            clientlib {
-                java {
-                    srcDir project.file("src/main/java")
-                    include '**/client/**'
-                    compileClasspath = project.configurations.clientlib
+        if (project.pluginManager.hasPlugin("java") && project.featureEnabled("clientlib")) {
+        
+            project.sourceSets {
+                clientlib {
+                    java {
+                        srcDir project.file("src/main/java")
+                        include '**/client/**'
+                        compileClasspath = project.configurations.clientlib
+                    }
                 }
             }
-        }
-        
-        project.task("clientlib", type: Jar) {
-            baseName = project.name+'-client'
-            classifier = 'client'
-            from project.sourceSets.clientlib.output
-        }
-        
-        
-        project.artifacts {
-            archives project.tasks.clientlib
-        }
-        
-        project.install {
-            repositories {
-                mavenDeployer {
-                    def clientPom = addFilter('client') {artifact, file ->
-                        artifact.extraAttributes.classifier == 'client'
-                    }
-                    clientPom.whenConfigured {pom->
-                        def deps = []
-                        project.configurations.clientlib.dependencies.each {deps << it.name}
-                        pom.setDependencies(pom.getDependencies().findAll {d->
-                            deps.contains(d.artifactId)
-                        })
+            
+            project.task("clientlib", type: Jar) {
+                baseName = project.name+'-client'
+                classifier = 'client'
+                from project.sourceSets.clientlib.output
+            }
+            
+            
+            project.artifacts {
+                archives project.tasks.clientlib
+            }
+            
+            project.install {
+                repositories {
+                    mavenDeployer {
+                        def clientPom = addFilter('client') {artifact, file ->
+                            artifact.extraAttributes.classifier == 'client'
+                        }
+                        clientPom.whenConfigured {pom->
+                            def deps = []
+                            project.configurations.clientlib.dependencies.each {deps << it.name}
+                            pom.setDependencies(pom.getDependencies().findAll {d->
+                                deps.contains(d.artifactId)
+                            })
+                        }
                     }
                 }
             }

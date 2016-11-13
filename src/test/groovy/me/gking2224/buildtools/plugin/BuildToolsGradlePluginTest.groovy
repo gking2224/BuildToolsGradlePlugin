@@ -29,4 +29,13 @@ class BuildToolsGradlePluginTest {
         def c = { return n }
         assertEquals(n, project.resolveValue(c) )
     }
+    
+    @Test
+    public void featureEnablement() {
+        project.buildtools {
+            myfeatureEnabled()
+        }
+        assertTrue(project.featureEnabled("myfeature"))
+        assertFalse(project.featureEnabled("yourfeature"))
+    }
 }

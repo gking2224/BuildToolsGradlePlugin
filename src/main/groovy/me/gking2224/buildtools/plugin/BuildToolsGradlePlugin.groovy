@@ -20,7 +20,13 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
         project.extensions.create(
             EnvironmentsHandler.KEY,
              EnvironmentsHandler, project)
+        project.extensions.create(
+            BuildToolsPluginExtension.KEY,
+             BuildToolsPluginExtension, project)
         
+        project.ext.applyBuildTools = {
+            configureProject()
+        }
 //        configurers << new ProjectLifecycleConfigurer(project)
         configurers << new UtilityTasksConfigurer(project)
         configurers << new DefaultProjectConfigurer(project)
@@ -31,9 +37,12 @@ public class BuildToolsGradlePlugin implements Plugin<Project> {
         configurers << new ReleaseTasksConfigurer(project)
         
         
+	}
+    
+    def configureProject() {
         configurers.each {c->
             c.configureProject()
         }
-	}
+    }
 }
 

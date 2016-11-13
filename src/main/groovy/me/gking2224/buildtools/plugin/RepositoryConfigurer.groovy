@@ -11,16 +11,19 @@ class RepositoryConfigurer extends AbstractProjectConfigurer {
     }
     
     def configureProject() {
-        if (!project.pluginManager.hasPlugin("maven")) project.pluginManager.apply "maven"
-        
-        if (!project.hasProperty("localMavenRepo")) {
-            logger.debug("No property 'localMavenRepo' defined, using default value: $DEFAULT_LOCAL_MAVEN_REPO")
-            project.ext.localMavenRepo = DEFAULT_LOCAL_MAVEN_REPO
-        }
-        project.install {
-            repositories {
-                mavenDeployer {
-                    repository(url: project.localMavenRepo)
+        if (project.featureEnabled("maven")) {
+            if (!project.pluginManager.hasPlugin("maven")) {
+                project.pluginManager.apply "maven"
+            }
+            if (!project.hasProperty("localMavenRepo")) {
+                logger.debug("No property 'localMavenRepo' defined, using default value: $DEFAULT_LOCAL_MAVEN_REPO")
+                project.ext.localMavenRepo = DEFAULT_LOCAL_MAVEN_REPO
+            }
+            project.install {
+                repositories {
+                    mavenDeployer {
+                        repository(url: project.localMavenRepo)
+                    }
                 }
             }
         }
