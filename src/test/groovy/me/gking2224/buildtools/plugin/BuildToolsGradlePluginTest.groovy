@@ -17,6 +17,7 @@ class BuildToolsGradlePluginTest {
         project.pluginManager.apply "java"
         project.pluginManager.apply "maven"
         project.pluginManager.apply BuildToolsGradlePlugin.NAME
+        project.applyBuildTools()
         project.ext["buildtools.environment"] = "test"
         
     }
